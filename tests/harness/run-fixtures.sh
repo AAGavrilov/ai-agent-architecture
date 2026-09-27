@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Unit tests для validators: fixtures с ожидаемыми exit codes (§45–46).
+# Unit tests для validators: fixtures с ожидаемыми exit codes (§35–36).
 # Запускается из check-all.sh — aggregate harness падает при любом несовпадении.
 set -euo pipefail
 
@@ -19,23 +19,44 @@ expect() { # expected_exit label command...
 }
 
 FIX=tests/harness/fixtures
+state() { env STATE_FILE="$FIX/$1/STATE.md" bash tests/harness/check-state.sh; }
+contracts() { env CONTRACTS_GLOB="$FIX/$1/*.md" bash tests/harness/check-contracts.sh; }
 
-# §46 Test 1: COMPLETED с CHANGES_REQUIRED → FAIL
-expect 1 "invalid-state-verdict"  env STATE_FILE="$FIX/invalid-state-verdict/STATE.md" bash tests/harness/check-state.sh
-# §46 Test 2: REVIEW_READY→IMPLEMENTATION_PENDING с APPROVED → FAIL
-expect 1 "invalid-transition"     env STATE_FILE="$FIX/invalid-transition/STATE.md" bash tests/harness/check-state.sh
-# §46 Test 3: REVIEW_READY→IMPLEMENTATION_PENDING с CHANGES_REQUIRED → PASS
-expect 0 "valid-changes-required" env STATE_FILE="$FIX/valid-changes-required/STATE.md" bash tests/harness/check-state.sh
-# §46 Test 4: WAITING_HUMAN без suspended state → FAIL
-expect 1 "invalid-waiting-human"  env STATE_FILE="$FIX/invalid-waiting-human/STATE.md" bash tests/harness/check-state.sh
-# §46 Test 5: HALTED с невалидной причиной → FAIL
-expect 1 "invalid-halted"         env STATE_FILE="$FIX/invalid-halted/STATE.md" bash tests/harness/check-state.sh
-# §46 Test 6: глобальный duplicate ID → FAIL
-expect 1 "duplicate-id"           env CONTRACTS_GLOB="$FIX/duplicate-id/*.md" bash tests/harness/check-contracts.sh
-# dangling reference → FAIL
-expect 1 "dangling-reference"     env CONTRACTS_GLOB="$FIX/dangling-reference/*.md" bash tests/harness/check-contracts.sh
-# positive contracts fixture → PASS
-expect 0 "valid-contracts"        env CONTRACTS_GLOB="$FIX/valid-contracts/*.md" bash tests/harness/check-contracts.sh
+# --- Terminal state: COMPLETED (REQ-HARNESS-018) ---
+expect 0 "valid-completed-approved"                state valid-completed-approved
+expect 0 "valid-completed-approved-with-changes"   state valid-completed-approved-with-changes
+expect 1 "invalid-state-verdict (CHANGES_REQUIRED)" state invalid-state-verdict
+expect 1 "invalid-completed-rejected"              state invalid-completed-rejected
+
+# --- Verdict routing REVIEW_READY (REQ-HARNESS-019/020) ---
+expect 0 "valid-changes-required"                  state valid-changes-required
+expect 1 "invalid-transition (APPROVED)"           state invalid-transition
+expect 0 "valid-architecture-rejected"             state valid-architecture-rejected
+expect 1 "invalid-architecture-transition"         state invalid-architecture-transition
+
+# --- WAITING_HUMAN (REQ-HARNESS-026/027) ---
+expect 1 "invalid-waiting-human (no suspended)"    state invalid-waiting-human
+expect 1 "invalid-waiting-human-no-q"              state invalid-waiting-human-no-q
+expect 1 "invalid-waiting-human-unknown-q"         state invalid-waiting-human-unknown-q
+
+# --- HALTED (REQ-HARNESS-021/028) ---
+expect 1 "invalid-halted (bad reason)"             state invalid-halted
+expect 1 "invalid-halted-no-reason"                state invalid-halted-no-reason
+expect 1 "invalid-halted-no-evidence"              state invalid-halted-no-evidence
+
+# --- INIT taint (§36) ---
+expect 1 "invalid-init-historical"                 state invalid-init-historical
+expect 1 "invalid-init-commit"                     state invalid-init-commit
+
+# --- Template mode (REQ-HARNESS-025) ---
+expect 0 "valid-template-init" env AGENT_ARTIFACTS_DIR="$FIX/valid-template-init/agent" STATE_FILE="$FIX/valid-template-init/STATE.md" bash tests/harness/check-state.sh
+expect 1 "invalid-template-completed" env AGENT_ARTIFACTS_DIR="$FIX/valid-template-completed/agent" STATE_FILE="$FIX/invalid-template-completed/STATE.md" bash tests/harness/check-state.sh
+expect 1 "invalid-template-contaminated" env AGENT_ARTIFACTS_DIR="$FIX/invalid-template-contaminated/agent" STATE_FILE="$FIX/invalid-template-contaminated/STATE.md" bash tests/harness/check-state.sh
+
+# --- Contracts (REQ-HARNESS-014/015) ---
+expect 1 "duplicate-id"                            contracts duplicate-id
+expect 1 "dangling-reference"                      contracts dangling-reference
+expect 0 "valid-contracts"                         contracts valid-contracts
 
 if [[ "$failures" -eq 0 ]]; then
   echo "PASS: all fixture tests behave as expected"

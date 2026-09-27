@@ -6,6 +6,7 @@ on:
 
 jobs:
   harness:
+    name: Deterministic Harness
     runs-on: ubuntu-latest
 
     steps:
@@ -16,3 +17,20 @@ jobs:
 
       - name: Run deterministic harness
         run: tests/harness/check-all.sh
+
+      - name: Write harness result
+        if: always()
+        run: |
+          {
+            echo "commit=${GITHUB_SHA}"
+            echo "workflow=${GITHUB_WORKFLOW}"
+            echo "run=${GITHUB_RUN_ID}"
+            echo "job=${GITHUB_JOB}"
+          } > harness-result.txt
+
+      - name: Upload harness result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-result
+          path: harness-result.txt

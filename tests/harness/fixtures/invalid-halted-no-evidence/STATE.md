@@ -25,18 +25,18 @@
 
 ## Human interaction
 
-- Suspended state: IMPLEMENTATION_READY
+- Suspended state: REVIEW_READY
 - Blocking question: null
 - Suspension reason: null
 
 ## Halt
 
-- Halt reason: INVALID_REASON
-- Halt evidence: implementation cannot proceed
+- Halt reason: NO_PROGRESS
+- Halt evidence: null
 
 ## Last transition
 
-- From: IMPLEMENTATION_READY
+- From: REVIEW_READY
 - To: HALTED
 - Reason: no progress
 

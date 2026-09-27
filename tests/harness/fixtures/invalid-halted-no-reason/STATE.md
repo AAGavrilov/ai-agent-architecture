@@ -31,14 +31,14 @@
 
 ## Halt
 
-- Halt reason: INVALID_REASON
+- Halt reason: null
 - Halt evidence: implementation cannot proceed
 
 ## Last transition
 
 - From: IMPLEMENTATION_READY
 - To: HALTED
-- Reason: no progress
+- Reason: halt without reason
 
 ## Evidence
 
