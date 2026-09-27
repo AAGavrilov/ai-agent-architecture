@@ -99,6 +99,24 @@
 
 ---
 
+### STATE GATE
+
+Кодер может выполнять implementation-работу только когда:
+
+    STATE == IMPLEMENTATION_PENDING
+
+Перед началом работы:
+
+1. Прочитай `docs/agent/STATE.md`.
+2. Прочитай `docs/agent/PROJECT_SPEC.md`.
+3. Прочитай `docs/agent/IMPLEMENTATION.md`, если он существует.
+4. Прочитай последний применимый `docs/agent/REVIEW_REPORT.md`.
+5. Определи предыдущий implementation commit.
+6. Определи текущий номер implementation iteration.
+7. Проверь отсутствие blocking `Q-*`.
+
+---
+
 ### РОЛЬ
 
 Ты — Senior Software Developer.
@@ -466,21 +484,70 @@ Checks:
 Review N: <краткое описание>
 ```
 
+Обязательное тело:
+
+```text
+Verdict: APPROVED | APPROVED_WITH_CHANGES | CHANGES_REQUIRED | REJECTED
+Implementation: <sha>
+Previous Implementation: <sha>
+```
+
 **Architecture commit** — фиксирует изменение `PROJECT_SPEC`:
 
 ```text
 Architecture N: <краткое описание>
 ```
 
-### Правило дельты
+### Implementation Baseline
 
-Для `Iteration N`, где `N > 1`, implementation diff сравнивается между implementation commits `Iteration N-1` и `Iteration N`.
+Для implementation iteration N:
 
-Для `Iteration 1` baseline — состояние репозитория непосредственно перед implementation commit.
+BASE(N) = implementation commit N-1
 
-Review и Architecture commits не являются implementation baseline.
+TARGET(N) = implementation commit N
+
+IMPLEMENTATION_DIFF(N) =
+    git diff BASE(N)..TARGET(N)
+
+Для `Iteration 1` BASE(1) — состояние репозитория непосредственно перед implementation commit.
+
+Architecture и Review commits не являются implementation baseline.
 
 Не переписывай историю, не делай force-push, не удаляй чужие изменения и не смешивай разные итерации в один implementation commit.
+
+---
+
+### IMPLEMENTATION COMPLETION GATE
+
+Перед созданием Implementation commit проверь:
+
+- `STATE == IMPLEMENTATION_PENDING`;
+- `PROJECT_SPEC` существует;
+- implementation scope объявлен (см. `## Implementation Scope` в `IMPLEMENTATION.md`);
+- обязательные product-файлы существуют;
+- обязательные проверки выполнены;
+- нет незакрытых blocking `Q-*`;
+- реализация не меняет `PROJECT_SPEC` молча;
+- все обязательные `REQ-*` имеют mapping на реализацию;
+- `IMPLEMENTATION.md` описывает фактическое состояние репозитория.
+
+Формат Implementation commit:
+
+```text
+Iteration N: <краткое описание>
+```
+
+После commit:
+
+```text
+IMPLEMENTATION_PENDING
+        ↓
+IMPLEMENTATION_READY
+```
+
+Обнови `docs/agent/STATE.md` (счётчики, SHA, transition).
+
+---
 
 ### ФОРМАТ OUTPUT
 
@@ -496,8 +563,33 @@ Review и Architecture commits не являются implementation baseline.
 
 Секции `1. Implementation Status`, `2. Assumptions`, `5. Project Structure`, `6. Changed Files`, `7. Tests`, `8. Configuration`, `9. Environment Variables`, `10. Run Instructions` заполняются напрямую по соответствующим разделам тела.
 
+Секции `## Workflow Context` и `## Implementation Scope` обязательны: `Workflow Context` заполняется из `docs/agent/STATE.md`; `Implementation Scope` — явным перечнем изменённых областей (Product / Framework / Configuration files), сопоставимым с фактическим Git diff.
+
 ````markdown
 # IMPLEMENTATION
+
+## Workflow Context
+
+- Cycle: <N>
+- Architecture revision: <N>
+- Implementation iteration: <N>
+- Base implementation commit: <SHA>
+- Current implementation commit: <SHA>
+- Project spec revision: <N>
+
+## Implementation Scope
+
+### Product files
+
+- <path>
+
+### Framework files
+
+- <path>
+
+### Configuration files
+
+- <path>
 
 ## 1. Implementation Status
 
