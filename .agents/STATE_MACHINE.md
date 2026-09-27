@@ -93,8 +93,16 @@ any non-terminal state
   -> HALTED
   when an unrecoverable protocol violation occurs
 
-A blocking Q-* is unresolved when no approved ASM-* resolves it
-(see ORCHESTRATOR.md, Q-* AND ASM-* PROTOCOL).
+A blocking Q-* is unresolved when no approved ASM-* resolves it.
+
+An ASM-* resolves a Q-* when its definition declares both clauses on the
+same line:
+
+    - **ASM-NNN** — <text> — Resolves: Q-NNN; Status: APPROVED
+
+`Status: APPROVED` is the approval marker; any other status (for example
+`PROPOSED`) does not resolve the question. See HARNESS_CONTRACT.md,
+REQ-HARNESS-033 and ORCHESTRATOR.md, Q-* AND ASM-* PROTOCOL.
 
 Escalation never applies from a terminal state, and never targets the
 source state itself (no self-loop).

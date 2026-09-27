@@ -157,6 +157,14 @@ Blocking `Q-*` обрабатываются по разделу «Q-* AND ASM-* 
 
 `Q-*` считается resolved, когда зафиксирован одобренный `ASM-*` или получен ответ человека; до этого blocking `Q-*` остаётся unresolved и удерживает workflow в `WAITING_HUMAN`.
 
+Машиночитаемая форма одобренного допущения (проверяется harness, `HARNESS_CONTRACT.md` REQ-HARNESS-033):
+
+```text
+- **ASM-NNN** — <текст> — Resolves: Q-NNN; Status: APPROVED
+```
+
+Статус, отличный от `APPROVED` (например `PROPOSED`), вопрос не разрешает.
+
 ### 8. LIMITS
 
 Workflow использует независимые счётчики (см. `docs/agent/STATE.md`):

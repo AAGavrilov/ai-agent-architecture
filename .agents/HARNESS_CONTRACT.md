@@ -222,6 +222,26 @@ The commit-subject format has exactly one implementation —
 `tests/harness/lib/commit-protocol.sh` — shared by all validators; validators
 MUST NOT parse the format independently.
 
+### REQ-HARNESS-033
+
+An ASM-* resolves a Q-* only when its definition declares both clauses on the
+same line:
+
+```text
+- **ASM-NNN** — <text> — Resolves: Q-NNN; Status: APPROVED
+```
+
+Rules:
+
+- `Resolves: Q-NNN` binds the assumption to the question it resolves;
+- `Status: APPROVED` is the approval marker; any other status (`PROPOSED`,
+  `PENDING`, absent) does not resolve the question;
+- WAITING_HUMAN is valid only when the blocking Q-* exists AND no approved
+  ASM-* resolves it.
+
+Both the Q-* definition and the resolving ASM-* MUST live in the active
+workflow artifacts (`docs/agent/`).
+
 ## Validator mapping
 
 ```text
@@ -247,6 +267,7 @@ check-state.sh
     → REQ-HARNESS-028
     → REQ-HARNESS-029
     → REQ-HARNESS-031
+    → REQ-HARNESS-033
 ```
 
 ```text

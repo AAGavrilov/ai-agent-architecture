@@ -179,12 +179,18 @@ if [[ "$STATE" == "HALTED" ]]; then
 fi
 
 if [[ "$STATE" == "WAITING_HUMAN" ]]; then
-  # §22–24
+  # §22–24 + REQ-HARNESS-033
   grep -qw "$SUSPENDED" <<<"$VALID_STATES" || fail "WAITING_HUMAN but suspended state is '$SUSPENDED'"
   [[ "$BLOCKING_Q" =~ ^Q-[0-9]{3}$ ]] || fail "WAITING_HUMAN but blocking question is '$BLOCKING_Q'"
   [[ "$SUSPENSION_REASON" != "null" ]] || fail "WAITING_HUMAN but suspension reason is null"
-  grep -rq --exclude='STATE.md' -e "$BLOCKING_Q" docs/agent/ \
-    || fail "WAITING_HUMAN references unknown $BLOCKING_Q (not found in docs/agent artifacts)"
+  artifacts_dir="${AGENT_ARTIFACTS_DIR:-docs/agent}"
+  grep -rq --exclude='STATE.md' -e "$BLOCKING_Q" "$artifacts_dir" \
+    || fail "WAITING_HUMAN references unknown $BLOCKING_Q (not found in $artifacts_dir artifacts)"
+  # unresolved: ни одно одобренное ASM-* не разрешает этот вопрос
+  if grep -rh --include='*.md' -E "\*\*ASM-[0-9]{3}\*\*.*Resolves:[[:space:]]*${BLOCKING_Q}([^0-9]|$)" "$artifacts_dir" 2>/dev/null \
+     | grep -qE "Status:[[:space:]]*APPROVED"; then
+    fail "WAITING_HUMAN but $BLOCKING_Q is resolved by an approved ASM-* (REQ-HARNESS-033)"
+  fi
 fi
 
 # --- Transition relation (§6–8, §14–15): NORMAL + ESCALATION ---

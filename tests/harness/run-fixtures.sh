@@ -37,6 +37,7 @@ expect_fail() { # label expected_message_substring command...
 }
 
 state() { env STATE_FILE="$FIX/$1/STATE.md" bash tests/harness/check-state.sh; }
+wait_state() { env AGENT_ARTIFACTS_DIR="$FIX/$1/agent" STATE_FILE="$FIX/$1/STATE.md" bash tests/harness/check-state.sh; }
 template_state() { env AGENT_ARTIFACTS_DIR="$FIX/$1/agent" STATE_FILE="$FIX/$1/STATE.md" bash tests/harness/check-state.sh; }
 contracts() { env CONTRACTS_GLOB="$FIX/$1/*.md" bash tests/harness/check-contracts.sh; }
 
@@ -61,6 +62,8 @@ expect_fail "invalid-architecture-transition"          "must be null or REJECTED
 expect_fail "invalid-waiting-human"                    "suspended state is 'null'" state invalid-waiting-human
 expect_fail "invalid-waiting-human-no-q"               "blocking question is 'null'" state invalid-waiting-human-no-q
 expect_fail "invalid-waiting-human-unknown-q"          "references unknown Q-999" state invalid-waiting-human-unknown-q
+expect_pass "valid-waiting-human-unresolved"           wait_state valid-waiting-human-unresolved
+expect_fail "invalid-waiting-human-resolved-by-asm"    "resolved by an approved ASM" wait_state invalid-waiting-human-resolved-by-asm
 
 # --- HALTED (REQ-HARNESS-021/028 + связка reason↔counters) ---
 expect_fail "invalid-halted"                           "not a valid halt_reason" state invalid-halted
