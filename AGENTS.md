@@ -323,9 +323,14 @@ The responsibilities are separated as follows:
 
 - `AGENTS.md` defines permanent project rules.
 - `Memory.md` contains persistent project knowledge.
-- Superpowers is the Coder-side execution layer (execution-only): it does not design architecture and does not replace the independent Reviewer. Its bootstrap is suppressed in Architect and Reviewer sessions.
+- Superpowers is the Coder-side execution layer (execution-only): it does not design architecture and does not replace the independent Reviewer. Its bootstrap and skills apply only to Coder sessions (universal rule below).
 - `.agents/adapters/superpowers.md` connects Superpowers to the project workflow.
 - The three project prompts define the behavior of the individual development stages.
+
+The role restriction is universal and harness-independent:
+
+- Normative baseline, valid in every environment: outside the Coder session, the Superpowers bootstrap (`using-superpowers`) and its skills are ignored — the Architect works only by `.agents/prompts/01-analysis.md`, the Reviewer only by `.agents/prompts/03-review.md`. Every role session must read `AGENTS.md` and its role prompt before starting work (`.agents/ORCHESTRATOR.md`, section 3), so this rule binds any agent that runs the iteration protocol, regardless of the harness or of whether Superpowers is installed there.
+- Technical suppression is optional per-harness hardening: it prevents the bootstrap from injecting skills into the context at all and is configured where Superpowers is installed (for opencode: `.opencode/INSTALL.md`). It never replaces the normative baseline.
 
 Do not duplicate the full Superpowers workflow inside `AGENTS.md`.
 
