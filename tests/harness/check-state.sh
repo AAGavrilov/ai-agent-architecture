@@ -53,6 +53,7 @@ SUSPENDED="$(null_if "$(field 'Suspended state')")"
 BLOCKING_Q="$(null_if "$(field 'Blocking question')")"
 SUSPENSION_REASON="$(null_if "$(field 'Suspension reason')")"
 HALT_REASON="$(null_if "$(field 'Halt reason')")"
+HALT_EVIDENCE="$(null_if "$(field 'Halt evidence')")"
 FROM="$(null_if "$(field 'From')")"
 TO="$(null_if "$(field 'To')")"
 REASON="$(field 'Reason')"
@@ -83,10 +84,21 @@ if [[ "$STATE" == "INIT" ]]; then
   for c in "$CYCLE" "$ARCH_REV" "$IMPL_ITER" "$REVIEW_ITER" "$NOPROGRESS"; do
     [[ "$c" == "0" ]] || fail "INIT state contains historical workflow evidence (counter=$c)"
   done
-  for v in "$ARCH_COMMIT" "$PREV_IMPL_COMMIT" "$CUR_IMPL_COMMIT" "$REVIEW_COMMIT" "$VERDICT" "$SUSPENDED" "$BLOCKING_Q" "$SUSPENSION_REASON" "$HALT_REASON" "$FROM"; do
+  for v in "$ARCH_COMMIT" "$PREV_IMPL_COMMIT" "$CUR_IMPL_COMMIT" "$REVIEW_COMMIT" "$VERDICT" "$SUSPENDED" "$BLOCKING_Q" "$SUSPENSION_REASON" "$HALT_REASON" "$HALT_EVIDENCE" "$FROM"; do
     [[ "$v" == "null" ]] || fail "INIT state contains historical workflow evidence ($v)"
   done
   [[ "$TO" == "INIT" ]] || fail "INIT state: last transition To must be INIT, got '$TO'"
+fi
+
+# --- Template mode (REQ-HARNESS-025): main = reusable framework template ---
+# Маркер — декларация в шапке STATE.md; отдельного runtime-поля не вводится.
+if grep -qi "reusable framework template" "$STATE_FILE"; then
+  [[ "$STATE" == "INIT" ]] || fail "template mode declared but State is '$STATE' (REQ-HARNESS-025 requires a fresh instance: INIT)"
+  agent_dir="${AGENT_ARTIFACTS_DIR:-docs/agent}"
+  for artifact in IMPLEMENTATION.md REVIEW_REPORT.md; do
+    [[ -f "$agent_dir/$artifact" ]] && fail "template mode: historical artifact $agent_dir/$artifact must not live in the active workflow directory (move to docs/examples/)"
+  done
+  true
 fi
 
 if [[ "$STATE" == "ARCHITECTURE_PENDING" ]]; then
@@ -153,6 +165,7 @@ if [[ "$STATE" == "HALTED" ]]; then
   [[ "$SUSPENDED" != "null" ]] || fail "HALTED but suspended state (last valid state) is null"
   grep -qw "$SUSPENDED" <<<"$VALID_STATES" || fail "HALTED but suspended state '$SUSPENDED' is not a valid state"
   [[ "$FROM" == "$SUSPENDED" ]] || fail "HALTED: suspended state '$SUSPENDED' must equal last transition From '$FROM'"
+  [[ "$HALT_EVIDENCE" != "null" ]] || fail "HALTED but halt evidence is null (REQ-HARNESS-028 requires evidence of the halt condition)"
 fi
 
 if [[ "$STATE" == "WAITING_HUMAN" ]]; then
