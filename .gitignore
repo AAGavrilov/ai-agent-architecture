@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Environment / secrets
+.env
+.env.*
+*.local
+
+# Dependencies / build
+node_modules/
+dist/
+build/
+out/
+
+# Logs
+*.log
