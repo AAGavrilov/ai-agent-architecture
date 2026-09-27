@@ -17,7 +17,7 @@ Verification
      ↓
 docs/agent/IMPLEMENTATION.md
      ↓
-Iteration N
+Iteration <cycle>.<iteration>
 ```
 
 Superpowers **не заменяет**:
@@ -668,7 +668,7 @@ Superpowers не меняет Git-протокол проекта.
 Implementation commit создаётся Кодером:
 
 ```text
-Iteration N: <краткое описание>
+Iteration <cycle>.<iteration>: <краткое описание>
 ```
 
 В теле:

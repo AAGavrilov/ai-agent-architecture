@@ -212,8 +212,8 @@ Can it be faster?
 
 Базовая точка:
 
-* `Iteration N`, где `N > 1` — implementation commit `Iteration N-1`;
-* `Iteration 1` — состояние непосредственно перед `Iteration 1`.
+* `Iteration <cycle>.<N>`, где `N > 1` — implementation commit `Iteration <cycle>.(N-1)`;
+* `Iteration <cycle>.1` — состояние непосредственно перед `Iteration <cycle>.1`.
 
 Порядок проверки:
 
@@ -619,7 +619,7 @@ Possible solutions:
 Результат ревью фиксируется Review commit обязательно:
 
 ```text
-Review N: <краткое описание>
+Review <cycle>.<review>: <краткое описание>
 ```
 
 Обязательное тело:

@@ -553,7 +553,7 @@ Affected decisions:
 Формат Architecture commit:
 
 ```text
-Architecture N: <краткое описание>
+Architecture <cycle>.<revision>: <краткое описание>
 ```
 
 После commit:

@@ -230,58 +230,99 @@ esac
 
 # --- Commit subjects и нумерация (§17–18, §55) ---
 
-num_of() { # sha type -> number (пусто, если subject не конформный)
+commit_nums() { # sha type -> "cycle counter" (legacy без цикла нормализуется в cycle 1)
   local subj
   subj="$(subject_of "$1")"
-  [[ "$subj" =~ ^$2\ ([0-9]+): ]] && echo "${BASH_REMATCH[1]}"
+  if [[ "$subj" =~ ^$2\ ([0-9]+)\.([0-9]+): ]]; then
+    echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
+  elif [[ "$subj" =~ ^$2\ ([0-9]+): ]]; then
+    echo "1 ${BASH_REMATCH[1]}"
+  fi
 }
 
 if [[ "$ARCH_COMMIT" != "null" ]]; then
   if is_exempt_arch "$ARCH_COMMIT"; then
     (( ARCH_REV >= 1 )) || fail "Architecture commit set but Architecture revision is $ARCH_REV"
   else
-    check_subject "Architecture commit" "$ARCH_COMMIT" '^Architecture ([0-9]+):' "$ARCH_REV"
+    nums="$(commit_nums "$ARCH_COMMIT" 'Architecture')"
+    [[ -n "$nums" ]] || fail "Architecture commit $ARCH_COMMIT has non-conforming subject: '$(subject_of "$ARCH_COMMIT")'"
+    [[ "${nums% *}" == "$CYCLE" && "${nums#* }" == "$ARCH_REV" ]] \
+      || fail "Architecture commit is 'Architecture ${nums% *}.${nums#* }' but expected 'Architecture $CYCLE.$ARCH_REV'"
   fi
 fi
 
-# Текущий implementation commit — последний implementation-артефакт, не HEAD (§13).
-# Строгое равенство с implementation_iteration требуется там, где итерация закоммичена;
-# в HALTED по лимиту итерация N не закоммичена — допускается N последнего коммита <= IMPL_ITER.
+# Текущий implementation commit — последний implementation-артефакт, не HEAD (REQ-HARNESS-029).
+# Счётчики цикловые: если коммит принадлежит текущему циклу — применяются соотношения
+# с implementation_iteration; если прошлому (например, после START нового цикла) —
+# коммит считается историей, и счётчики текущего цикла его не описывают.
+# Состояния, где текущий цикл уже имеет implementation/review артефакт:
+# commit-поля обязаны ссылаться на артефакт текущего цикла (а не прошлого).
+requires_current_cycle_impl() { grep -qw "$STATE" <<<"IMPLEMENTATION_READY REVIEW_PENDING REVIEW_READY COMPLETED"; }
+requires_current_cycle_review() { grep -qw "$STATE" <<<"REVIEW_READY COMPLETED"; }
+
 if [[ "$CUR_IMPL_COMMIT" != "null" ]]; then
-  n="$(num_of "$CUR_IMPL_COMMIT" 'Iteration')"
-  [[ -n "$n" ]] || fail "Current implementation commit $CUR_IMPL_COMMIT has non-conforming subject: '$(subject_of "$CUR_IMPL_COMMIT")'"
-  if [[ "$STATE" == "IMPLEMENTATION_READY" ]]; then
-    [[ "$n" == "$IMPL_ITER" ]] || fail "Current implementation commit is 'Iteration $n' but implementation_iteration is $IMPL_ITER"
+  nums="$(commit_nums "$CUR_IMPL_COMMIT" 'Iteration')"
+  [[ -n "$nums" ]] || fail "Current implementation commit $CUR_IMPL_COMMIT has non-conforming subject: '$(subject_of "$CUR_IMPL_COMMIT")'"
+  c="${nums% *}"; n="${nums#* }"
+  if requires_current_cycle_impl; then
+    (( c == CYCLE )) || fail "Current implementation commit belongs to cycle $c but STATE=$STATE requires the current cycle ($CYCLE) artifact"
   else
-    (( n <= IMPL_ITER )) || fail "Current implementation commit is 'Iteration $n' but implementation_iteration is only $IMPL_ITER"
+    (( c <= CYCLE )) || fail "Current implementation commit belongs to cycle $c but current cycle is $CYCLE"
+  fi
+  if (( c == CYCLE )); then
+    if [[ "$STATE" == "IMPLEMENTATION_READY" ]]; then
+      [[ "$n" == "$IMPL_ITER" ]] || fail "Current implementation commit is 'Iteration $c.$n' but implementation_iteration is $IMPL_ITER"
+    else
+      (( n <= IMPL_ITER )) || fail "Current implementation commit is 'Iteration $c.$n' but implementation_iteration is only $IMPL_ITER"
+    fi
   fi
 fi
 
 if [[ "$REVIEW_COMMIT" != "null" ]]; then
-  n="$(num_of "$REVIEW_COMMIT" 'Review')"
-  [[ -n "$n" ]] || fail "Review commit $REVIEW_COMMIT has non-conforming subject: '$(subject_of "$REVIEW_COMMIT")'"
-  if [[ "$STATE" == "REVIEW_READY" ]]; then
-    [[ "$n" == "$REVIEW_ITER" ]] || fail "Review commit is 'Review $n' but review_iteration is $REVIEW_ITER"
+  nums="$(commit_nums "$REVIEW_COMMIT" 'Review')"
+  [[ -n "$nums" ]] || fail "Review commit $REVIEW_COMMIT has non-conforming subject: '$(subject_of "$REVIEW_COMMIT")'"
+  c="${nums% *}"; n="${nums#* }"
+  if requires_current_cycle_review; then
+    (( c == CYCLE )) || fail "Review commit belongs to cycle $c but STATE=$STATE requires the current cycle ($CYCLE) artifact"
   else
-    (( n <= REVIEW_ITER )) || fail "Review commit is 'Review $n' but review_iteration is only $REVIEW_ITER"
+    (( c <= CYCLE )) || fail "Review commit belongs to cycle $c but current cycle is $CYCLE"
+  fi
+  if (( c == CYCLE )); then
+    if [[ "$STATE" == "REVIEW_READY" ]]; then
+      [[ "$n" == "$REVIEW_ITER" ]] || fail "Review commit is 'Review $c.$n' but review_iteration is $REVIEW_ITER"
+    else
+      (( n <= REVIEW_ITER )) || fail "Review commit is 'Review $c.$n' but review_iteration is only $REVIEW_ITER"
+    fi
   fi
 fi
 
 if [[ "$PREV_IMPL_COMMIT" != "null" ]]; then
-  (( IMPL_ITER >= 2 )) || fail "Previous implementation commit set but Implementation iteration is $IMPL_ITER"
-  n="$(num_of "$PREV_IMPL_COMMIT" 'Iteration')"
-  [[ -n "$n" ]] || fail "Previous implementation commit $PREV_IMPL_COMMIT has non-conforming subject: '$(subject_of "$PREV_IMPL_COMMIT")'"
-  if [[ "$STATE" == "IMPLEMENTATION_READY" ]]; then
-    (( n == IMPL_ITER - 1 )) || fail "Previous implementation commit is 'Iteration $n' but expected Iteration $((IMPL_ITER - 1))"
-  else
-    (( n < IMPL_ITER )) || fail "Previous implementation commit is 'Iteration $n' but implementation_iteration is $IMPL_ITER"
+  nums="$(commit_nums "$PREV_IMPL_COMMIT" 'Iteration')"
+  [[ -n "$nums" ]] || fail "Previous implementation commit $PREV_IMPL_COMMIT has non-conforming subject: '$(subject_of "$PREV_IMPL_COMMIT")'"
+  c="${nums% *}"; n="${nums#* }"
+  (( c <= CYCLE )) || fail "Previous implementation commit belongs to cycle $c but current cycle is $CYCLE"
+  if (( c == CYCLE )); then
+    (( IMPL_ITER >= 2 )) || fail "Previous implementation commit belongs to the current cycle but Implementation iteration is $IMPL_ITER"
+    if [[ "$STATE" == "IMPLEMENTATION_READY" ]]; then
+      (( n == IMPL_ITER - 1 )) || fail "Previous implementation commit is 'Iteration $c.$n' but expected 'Iteration $CYCLE.$((IMPL_ITER - 1))'"
+    else
+      (( n < IMPL_ITER )) || fail "Previous implementation commit is 'Iteration $c.$n' but implementation_iteration is $IMPL_ITER"
+    fi
   fi
 fi
 
 # --- Согласованность счётчиков и коммитов ---
+# Соотношение "коммит ⇒ счётчик ≥ 1" действует только для коммитов текущего цикла:
+# после старта нового цикла commit-поля ещё указывают на артефакты прошлого.
 
-if [[ "$CUR_IMPL_COMMIT" != "null" ]]; then (( IMPL_ITER >= 1 )) || fail "Current implementation commit is set but Implementation iteration is $IMPL_ITER"; fi
-if [[ "$REVIEW_COMMIT" != "null" ]]; then (( REVIEW_ITER >= 1 )) || fail "Review commit is set but Review iteration is $REVIEW_ITER"; fi
+cur_impl_cycle="${CUR_IMPL_COMMIT:+$(commit_nums "$CUR_IMPL_COMMIT" 'Iteration')}"
+review_cycle="${REVIEW_COMMIT:+$(commit_nums "$REVIEW_COMMIT" 'Review')}"
+if [[ "$CUR_IMPL_COMMIT" != "null" && "${cur_impl_cycle% *}" == "$CYCLE" ]]; then
+  (( IMPL_ITER >= 1 )) || fail "Current implementation commit is in cycle $CYCLE but Implementation iteration is $IMPL_ITER"
+fi
+if [[ "$REVIEW_COMMIT" != "null" && "${review_cycle% *}" == "$CYCLE" ]]; then
+  (( REVIEW_ITER >= 1 )) || fail "Review commit is in cycle $CYCLE but Review iteration is $REVIEW_ITER"
+fi
 if [[ "$ARCH_COMMIT" == "null" && "$STATE" != "HALTED" ]]; then (( ARCH_REV == 0 )) || fail "Architecture commit is null but Architecture revision is $ARCH_REV"; fi
 
 # --- Deterministic enforcement лимитов (REQ-HARNESS-016/017) ---

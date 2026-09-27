@@ -2,26 +2,26 @@
 
 ## State
 
-- State: ARCHITECTURE_PENDING
+- State: IMPLEMENTATION_READY
 
 ## Counters
 
 - Cycle: 2
 - Architecture revision: 2
-- Implementation iteration: 0
+- Implementation iteration: 1
 - Review iteration: 0
 - No-progress count: 0
 
 ## Commits
 
 - Architecture commit: df160b2
-- Previous implementation commit: 9875a69
+- Previous implementation commit: null
 - Current implementation commit: 4bec754
-- Review commit: 912f99b
+- Review commit: null
 
 ## Verdict
 
-- Verdict: REJECTED
+- Verdict: null
 
 ## Human interaction
 
@@ -36,10 +36,10 @@
 
 ## Last transition
 
-- From: REVIEW_READY
-- To: ARCHITECTURE_PENDING
-- Reason: architecture-level rejection (counters restart with the new cycle; commit fields keep the last cycle-1 artifacts)
+- From: IMPLEMENTATION_PENDING
+- To: IMPLEMENTATION_READY
+- Reason: fixture: cycle-1 artifact claimed as the current cycle's implementation
 
 ## Evidence
 
-- Review 2: `912f99b` — REJECTED
+- None

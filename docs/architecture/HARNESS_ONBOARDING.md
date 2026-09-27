@@ -23,7 +23,7 @@
 | 1 | Каркас агентного workflow; три роли: Архитектор / Кодер / Ревьювер; артефакты в `docs/agent/` | instruction-loading и чтение файлов, а не фантазия (`БЛОК 0.2`) |
 | 2 | `grilling`, `research`, `to-questionnaire` из `.agents/skills/`; описание `research` — «находки с цитатами в текущий `PROJECT_SPEC`» (адаптированная копия) | привязка скиллов; harness сканирует workspace `.agents/skills/` |
 | 3 | «Проигнорирую, работаю только по `.agents/prompts/03-review.md`» | нормативный уровень `AGENTS.md` §9 (роль-разделение скиллов) |
-| 4 | `Architecture N: <описание>`; итерации — на отдельной ветке | GIT-ПРОТОКОЛ и режим веток (`ORCHESTRATOR.md`, разделы 1–2) |
+| 4 | `Architecture <cycle>.<revision>: <описание>`; итерации — на отдельной ветке | GIT-ПРОТОКОЛ и режим веток (`ORCHESTRATOR.md`, разделы 1–2) |
 | 5 | Состояние — из `docs/agent/STATE.md` (сейчас `INIT`: `main` объявлен reusable framework template, исторические записи — в `docs/examples/`); runtime state хранится только там, не в `Memory.md`; transitions определены в `.agents/STATE_MACHINE.md` | знание state machine, template-семантики и запрета второго источника runtime state |
 
 ## Если smoke-тест не прошёл
@@ -55,7 +55,7 @@
 | Кодер | `AGENTS.md`, `Memory.md`, `docs/agent/STATE.md`, `.agents/prompts/02-implementation.md`, `docs/agent/PROJECT_SPEC.md`; при N>1 — плюс `REVIEW_REPORT.md` и предыдущий `IMPLEMENTATION.md` | «Работай в роли Кодера, ветка `iteration/N`» |
 | Ревьювер | `AGENTS.md`, `docs/agent/STATE.md`, `.agents/prompts/03-review.md`, спека, имплементация, код, дельта итерации | «Работай в роли Ревьювера» |
 
-Организационное: прогон — на отдельной ветке; артефактные коммиты — строго `Architecture N:` / `Iteration N:` / `Review N:`; внеитерационные правки каркаса — обычные conventional-коммиты и не являются implementation baseline.
+Организационное: прогон — на отдельной ветке; артефактные коммиты — строго `Architecture <cycle>.<revision>:` / `Iteration <cycle>.<iteration>:` / `Review <cycle>.<review>:` (нумерация цикловая; коммиты без точки — legacy cycle 1, REQ-HARNESS-032); внеитерационные правки каркаса — обычные conventional-коммиты и не являются implementation baseline.
 
 ## Deterministic-проверки (без LLM)
 

@@ -50,15 +50,18 @@ Every artifact-dependent transition MUST have Git evidence.
 
 ### REQ-HARNESS-006
 
-Architecture commits MUST use the Architecture N commit convention.
+Architecture commits MUST use the cycle-scoped `Architecture <cycle>.<revision>:`
+commit convention.
 
 ### REQ-HARNESS-007
 
-Implementation commits MUST use the Iteration N commit convention.
+Implementation commits MUST use the cycle-scoped `Iteration <cycle>.<iteration>:`
+commit convention.
 
 ### REQ-HARNESS-008
 
-Review commits MUST use the Review N commit convention.
+Review commits MUST use the cycle-scoped `Review <cycle>.<review>:`
+commit convention.
 
 ### REQ-HARNESS-009
 
@@ -204,6 +207,17 @@ Q-* definitions MUST live in the active workflow artifacts (`docs/agent/`).
 
 A WAITING_HUMAN blocking Q-* that has no definition there fails the harness.
 
+### REQ-HARNESS-032
+
+Artifact commit numbering is cycle-scoped: `<Type> <cycle>.<counter>:`.
+
+Commits that carry no explicit cycle (`<Type> <counter>:`) are legacy cycle 1
+and MUST be normalized to `<Type> 1.<counter>:` for validation.
+
+Counter continuity, implementation baseline rules, and STATE.md cross-checks
+are evaluated per cycle: a new cycle restarts counters at 1 without
+conflicting with earlier cycles.
+
 ## Validator mapping
 
 ```text
@@ -249,4 +263,5 @@ check-git-protocol.sh
     → REQ-HARNESS-007
     → REQ-HARNESS-008
     → REQ-HARNESS-009
+    → REQ-HARNESS-032
 ```

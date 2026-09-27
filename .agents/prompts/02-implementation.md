@@ -462,7 +462,7 @@ Git используется как источник истины для фак�
 **Implementation commit** — создаётся Кодером:
 
 ```text
-Iteration N: <краткое описание>
+Iteration <cycle>.<iteration>: <краткое описание>
 ```
 
 В теле:
@@ -481,7 +481,7 @@ Checks:
 **Review commit** — фиксирует `REVIEW_REPORT`:
 
 ```text
-Review N: <краткое описание>
+Review <cycle>.<review>: <краткое описание>
 ```
 
 Обязательное тело:
@@ -495,7 +495,7 @@ Previous Implementation: <sha>
 **Architecture commit** — фиксирует изменение `PROJECT_SPEC`:
 
 ```text
-Architecture N: <краткое описание>
+Architecture <cycle>.<revision>: <краткое описание>
 ```
 
 ### Implementation Baseline
@@ -513,7 +513,7 @@ IMPLEMENTATION_DIFF(N) исключает runtime metadata:
 
     git diff "$BASE" "$TARGET" -- . ':(exclude)docs/agent/STATE.md'
 
-Для `Iteration 1` BASE(1) — состояние репозитория непосредственно перед implementation commit.
+Для первой итерации цикла (`Iteration <cycle>.1`) BASE — состояние репозитория непосредственно перед implementation commit; внутри цикла BASE(N) = implementation commit `Iteration <cycle>.(N-1)`.
 
 Architecture и Review commits не являются implementation baseline.
 
@@ -538,7 +538,7 @@ Architecture и Review commits не являются implementation baseline.
 Формат Implementation commit:
 
 ```text
-Iteration N: <краткое описание>
+Iteration <cycle>.<iteration>: <краткое описание>
 ```
 
 После commit:
@@ -621,7 +621,7 @@ IMPLEMENTATION_READY
 
 ````
 
-`## 3. Review Item Resolution` обязательна всегда. Если предыдущего `REVIEW_REPORT` не было, напиши `Iteration 1, no prior review`. Формат:
+`## 3. Review Item Resolution` обязательна всегда. Если предыдущего `REVIEW_REPORT` не было, напиши `Iteration <cycle>.1, no prior review`. Формат:
 
 ```markdown
 | REV-ID | Статус | Где изменено | Обоснование / проверка |

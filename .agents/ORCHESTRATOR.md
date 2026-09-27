@@ -232,7 +232,7 @@ workflow переходит в
 
 Обновление `docs/agent/STATE.md` — двухфазный процесс, чтобы STATE.md никогда не ссылался на несуществующий коммит.
 
-Phase A — artifact commit. Сначала создаётся содержательный коммит (`Architecture N:` / `Iteration N:` / `Review N:`). Только после него SHA известен.
+Phase A — artifact commit. Сначала создаётся содержательный коммит (`Architecture <cycle>.<revision>:` / `Iteration <cycle>.<iteration>:` / `Review <cycle>.<review>:`). Только после него SHA известен.
 
 Phase B — state commit. Затем обновляется `docs/agent/STATE.md` и создаётся framework/state commit:
 

@@ -69,6 +69,9 @@ expect_fail "invalid-halted-no-evidence"               "halt evidence is null" s
 expect_fail "invalid-halted-limit-mismatch"            "does not exceed limit" state invalid-halted-limit-mismatch
 expect_pass "valid-halted-iteration-limit"             state valid-halted-iteration-limit
 
+# --- Cycle-scoped commit fields (REQ-HARNESS-032) ---
+expect_fail "invalid-cycle-artifact-mismatch"          "requires the current cycle" state invalid-cycle-artifact-mismatch
+
 # --- INIT taint (§36 / REQ-HARNESS-025) ---
 expect_fail "invalid-init-historical"                  "historical workflow evidence" state invalid-init-historical
 expect_fail "invalid-init-commit"                      "historical workflow evidence" state invalid-init-commit
@@ -82,6 +85,39 @@ expect_fail "invalid-template-contaminated"            "must not live in the act
 expect_fail "duplicate-id"                             "duplicate global identifier" contracts duplicate-id
 expect_fail "dangling-reference"                       "dangling identifier" contracts dangling-reference
 expect_pass "valid-contracts"                          contracts valid-contracts
+
+# --- Git protocol: cycle-scoped нумерация (§11–12, REQ-HARNESS-032) ---
+# Изолированные temp-репозитории: покрывают multi-cycle сценарий, который нельзя
+# выразить fixtures на реальной истории.
+TMPROOT="$(mktemp -d)"
+trap 'rm -rf "$TMPROOT"' EXIT
+
+make_repo() { # dir message...
+  local d="$1"; shift
+  mkdir -p "$d"
+  (
+    cd "$d" || exit 1
+    git init -q
+    git config user.email t@example.com
+    git config user.name t
+    for m in "$@"; do git commit -q --allow-empty -m "$m"; done
+  )
+}
+gitproto() { env GIT_REPO_ROOT="$1" bash tests/harness/check-git-protocol.sh; }
+
+make_repo "$TMPROOT/pass" \
+  "Iteration 1: legacy cycle 1" \
+  "Review 1: legacy cycle 1" \
+  "Architecture 2.1: cycle 2 revision" \
+  "Iteration 2.1: cycle 2 first iteration" \
+  "Review 2.1: cycle 2 first review"
+expect_pass "git-protocol multi-cycle (cycle 2 restarts at 1)" gitproto "$TMPROOT/pass"
+
+make_repo "$TMPROOT/gap" "Iteration 1: a" "Iteration 3: b"
+expect_fail "git-protocol numbering gap" "not numbered continuously" gitproto "$TMPROOT/gap"
+
+make_repo "$TMPROOT/dup" "Iteration 2.1: a" "Iteration 2.1: b"
+expect_fail "git-protocol duplicate numbers" "duplicate Iteration numbers" gitproto "$TMPROOT/dup"
 
 if [[ "$failures" -eq 0 ]]; then
   echo "PASS: all fixture tests behave as expected"
