@@ -68,6 +68,10 @@ The canonical transition model is:
 
 `Memory.md` is not a runtime state store.
 
+For this repository `main` is a reusable framework template: new workflow
+instances start from `State: INIT`, and historical framework-development
+records live in `docs/examples/` (not runtime evidence).
+
 ## Deterministic Harness
 
 Run:
