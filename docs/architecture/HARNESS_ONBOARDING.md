@@ -8,11 +8,12 @@
 
 ```text
 Прочитай AGENTS.md, Memory.md, README.md и .agents/ORCHESTRATOR.md.
-Затем ответь четырьмя пунктами:
+Затем ответь пятью пунктами:
 1) Что это за проект и какие у него роли?
 2) Какие скиллы тебе доступны в этом workspace и откуда они загружены?
 3) Что ты сделаешь со скиллами Superpowers и mattpocock/skills, если я запущу тебя в роли Ревьювера?
 4) Каким коммитом фиксируется PROJECT_SPEC и на какой ветке идут итерации?
+5) В каком состоянии сейчас workflow и где лежит его runtime state?
 ```
 
 Ожидаемые ответы:
@@ -23,6 +24,7 @@
 | 2 | `grilling`, `research`, `to-questionnaire` из `.agents/skills/`; описание `research` — «находки с цитатами в текущий `PROJECT_SPEC`» (адаптированная копия) | привязка скиллов; harness сканирует workspace `.agents/skills/` |
 | 3 | «Проигнорирую, работаю только по `.agents/prompts/03-review.md`» | нормативный уровень `AGENTS.md` §9 (роль-разделение скиллов) |
 | 4 | `Architecture N: <описание>`; итерации — на отдельной ветке | GIT-ПРОТОКОЛ и режим веток (`ORCHESTRATOR.md`, разделы 1–2) |
+| 5 | Состояние — из `docs/agent/STATE.md` (например, `INIT`); runtime state хранится только там, не в `Memory.md`; transitions определены в `.agents/STATE_MACHINE.md` | знание state machine и запрет второго источника runtime state |
 
 ## Если smoke-тест не прошёл
 
@@ -30,6 +32,7 @@
 - **Нет пункта 2** — среда не сканирует `.agents/skills/`: привяжите скиллы symlink'ом на `.agents/skills/<name>` в её директорию скиллов, **не копией** (адаптер `.agents/adapters/mattpocock-skills.md`, §4: адаптированная версия существует в одном экземпляре). Если подхвачены не все скиллы — проверьте frontmatter: флаги вроде `disable-model-invocation` часть сред (например, Kimi Code) молча исключает из обнаружения; в вендоренных копиях проекта таких флагов нет.
 - **Нет пункта 3** — вернитесь к `AGENTS.md` §9 и потребуйте явного ответа; агент, не применивший правило ролей, в протоколе работать не должен.
 - **Нет пункта 4** — укажите агенту на GIT-ПРОТОКОЛ (`.agents/prompts/02-implementation.md`, §15) и раздел 2 оркестратора.
+- **Нет пункта 5** — укажите на `.agents/STATE_MACHINE.md` и `docs/agent/STATE.md`; агент, выдумывающий состояние workflow вместо чтения STATE.md, в протоколе работать не должен.
 
 ## Специально для opencode с установленным Superpowers
 
@@ -44,12 +47,25 @@
 
 ## Запуск протокола в новой среде
 
-Каждая сессия роли начинается с обязательного чтения (`ORCHESTRATOR.md`, раздел 3):
+Каждая сессия роли начинается с обязательного чтения (`ORCHESTRATOR.md`, раздел 3): помимо общих файлов каждая роль читает `docs/agent/STATE.md` и проходит STATE GATE своего промта (Архитектор — при `ARCHITECTURE_PENDING`, Кодер — при `IMPLEMENTATION_PENDING`, Ревьювер — при `REVIEW_PENDING`):
 
 | Роль | Что прочитать | Формула запуска |
 | --- | --- | --- |
-| Архитектор | `AGENTS.md`, `Memory.md`, `.agents/prompts/01-analysis.md` | «Работай в роли Архитектора. Требования: <задача>» — далее отвечаете на grilling-вопросы |
-| Кодер | `AGENTS.md`, `Memory.md`, `.agents/prompts/02-implementation.md`, `docs/agent/PROJECT_SPEC.md`; при N>1 — плюс `REVIEW_REPORT.md` и предыдущий `IMPLEMENTATION.md` | «Работай в роли Кодера, ветка `iteration/N`» |
-| Ревьювер | `AGENTS.md`, `.agents/prompts/03-review.md`, спека, имплементация, код, дельта итерации | «Работай в роли Ревьювера» |
+| Архитектор | `AGENTS.md`, `Memory.md`, `docs/agent/STATE.md`, `.agents/prompts/01-analysis.md` | «Работай в роли Архитектора. Требования: <задача>» — далее отвечаете на grilling-вопросы |
+| Кодер | `AGENTS.md`, `Memory.md`, `docs/agent/STATE.md`, `.agents/prompts/02-implementation.md`, `docs/agent/PROJECT_SPEC.md`; при N>1 — плюс `REVIEW_REPORT.md` и предыдущий `IMPLEMENTATION.md` | «Работай в роли Кодера, ветка `iteration/N`» |
+| Ревьювер | `AGENTS.md`, `docs/agent/STATE.md`, `.agents/prompts/03-review.md`, спека, имплементация, код, дельта итерации | «Работай в роли Ревьювера» |
 
 Организационное: прогон — на отдельной ветке; артефактные коммиты — строго `Architecture N:` / `Iteration N:` / `Review N:`; внеитерационные правки каркаса — обычные conventional-коммиты и не являются implementation baseline.
+
+## Deterministic-проверки (без LLM)
+
+После каждого перехода workflow и в приёмку новой среды прогоните из корня репозитория:
+
+```bash
+bash tests/harness/check-block0.sh        # БЛОК 0 трёх промтов бит-идентичен
+bash tests/harness/check-state.sh         # STATE.md: состояние, счётчики, transitions
+bash tests/harness/check-contracts.sh     # идентификаторы артефактов без дублей и висячих ссылок
+bash tests/harness/check-git-protocol.sh  # форматы и нумерация артефактных коммитов
+```
+
+Все четыре должны завершиться с `PASS` и exit code 0. Проверки читают только Git, файловую систему и Markdown — «агент сказал, что…» доказательством не является.

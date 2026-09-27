@@ -12,6 +12,7 @@ ai-agent-architecture/
 │
 ├── .agents/
 │   ├── ORCHESTRATOR.md    ← протокол итерации: запуск трёх ролей по очереди
+│   ├── STATE_MACHINE.md   ← каноническая state machine (states, transitions, verdicts)
 │   │
 │   ├── prompts/
 │   │   ├── 01-analysis.md        ← Архитектор → docs/agent/PROJECT_SPEC.md
@@ -34,16 +35,24 @@ ai-agent-architecture/
 │   ├── agent/             ← контрактные артефакты итерации (машинные, волатильные)
 │   │   ├── PROJECT_SPEC.md
 │   │   ├── IMPLEMENTATION.md
-│   │   └── REVIEW_REPORT.md
+│   │   ├── REVIEW_REPORT.md
+│   │   └── STATE.md       ← runtime workflow state (счётчики, коммиты, verdict)
 │   └── architecture/      ← курируемая документация для людей
 │       └── HARNESS_ONBOARDING.md ← приёмочный чек-лист новой среды
 │
 ├── src/                   ← прикладной код (пока пуст)
 └── tests/
+    └── harness/           ← deterministic-проверки workflow без LLM
+        ├── check-block0.sh
+        ├── check-state.sh
+        ├── check-contracts.sh
+        └── check-git-protocol.sh
 ```
 
 ## С чего начать
 
 - Постоянные правила работы агентов — `AGENTS.md`.
-- Протокол итерации: порядок запуска ролей, маршрутизация по verdict, критерии остановки — `.agents/ORCHESTRATOR.md`.
+- Протокол итерации: порядок запуска ролей, gates, лимиты, маршрутизация по verdict — `.agents/ORCHESTRATOR.md`.
+- Каноническая state machine (состояния и transitions) — `.agents/STATE_MACHINE.md`; runtime state — `docs/agent/STATE.md`.
+- Deterministic-проверки workflow — `tests/harness/` (без LLM).
 - Execution-слои ролей (Superpowers для Кодера, mattpocock/skills для Архитектора) — `.agents/adapters/`; политика bootstrap Superpowers — `.opencode/INSTALL.md`.

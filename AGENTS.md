@@ -226,9 +226,25 @@ Reassess the plan before proceeding.
 
 ---
 
-## 8. Three-Stage Development Workflow
+## 8. Workflow Protocol
 
-The project uses three primary stages. Each stage corresponds to a role and a prompt file:
+The canonical workflow state machine is:
+
+.agents/STATE_MACHINE.md
+
+It is normative: role prompts MUST NOT introduce transitions that are not defined there.
+
+Runtime workflow state is:
+
+docs/agent/STATE.md
+
+Runtime state is never stored in `Memory.md`.
+
+Role-specific execution instructions are defined in:
+
+.agents/prompts/
+
+The project uses three roles, each working only inside its allowed state:
 
 | Stage | Role | Prompt file | Artifact |
 | --- | --- | --- | --- |
@@ -236,78 +252,11 @@ The project uses three primary stages. Each stage corresponds to a role and a pr
 | Implementation | Кодер (Senior Developer) | `.agents/prompts/02-implementation.md` | `docs/agent/IMPLEMENTATION.md` |
 | Review | Ревьювер (Lead Code Reviewer) | `.agents/prompts/03-review.md` | `docs/agent/REVIEW_REPORT.md` |
 
-The iteration protocol that runs these roles in order is defined in `.agents/ORCHESTRATOR.md`.
+The iteration protocol that runs these roles in order — dispatch, gates, limits, Q/ASM handling, verdict routing — is defined in `.agents/ORCHESTRATOR.md`.
 
 Artifacts use stable identifiers (`REQ-`, `ASM-`, `Q-`, `DEC-`, `BLK-`, `BIMP-`, `REV-`, `CONFLICT-`). The convention is defined in the role prompts; do not redefine it here.
 
-### Stage 1 — Analysis
-
-Prompt:
-
-`.agents/prompts/01-analysis.md`
-
-The Analysis stage is responsible for:
-
-- understanding the requirement;
-- investigating the repository;
-- identifying constraints;
-- identifying relevant existing functionality;
-- analyzing architectural impact;
-- identifying risks;
-- producing an implementation plan;
-- defining the expected outcome.
-
-Analysis should not unnecessarily modify production code.
-
-The output of Analysis should provide sufficient context for Implementation.
-
----
-
-### Stage 2 — Implementation
-
-Prompt:
-
-`.agents/prompts/02-implementation.md`
-
-The Implementation stage is responsible for:
-
-- implementing the approved plan;
-- following existing architecture and conventions;
-- writing or updating tests;
-- performing relevant local verification;
-- keeping changes minimal and focused.
-
-Implementation should not silently introduce unrelated architectural changes.
-
-If implementation reveals a significant architectural issue, return to Analysis rather than making an undocumented architectural decision.
-
----
-
-### Stage 3 — Review
-
-Prompt:
-
-`.agents/prompts/03-review.md`
-
-The Review stage is responsible for independently checking:
-
-- requirement coverage;
-- correctness;
-- code quality;
-- architectural consistency;
-- tests;
-- regressions;
-- edge cases;
-- security implications where applicable;
-- Definition of Done.
-
-Review must be treated as an independent verification stage, not merely as a continuation of implementation.
-
-If Review finds an implementation defect, return to Implementation.
-
-If Review finds an architectural problem, return to Analysis.
-
-A task is not complete until the Review stage is satisfied or all known limitations are explicitly documented.
+A workflow transition is valid only when the state permits it, the required artifact and Git evidence exist, and deterministic harness checks (`tests/harness/`) pass. A textual claim by an agent is not evidence when the state can be verified deterministically.
 
 ---
 
@@ -598,7 +547,7 @@ A task is considered complete only when:
 - the implementation follows project conventions;
 - required documentation is updated;
 - durable project knowledge has been added to `Memory.md` when appropriate;
-- Review has been completed;
+- workflow gates per `.agents/STATE_MACHINE.md` and `.agents/ORCHESTRATOR.md` are satisfied, or all known limitations are explicitly documented;
 - known limitations are explicitly documented.
 
 ---
@@ -619,7 +568,8 @@ Before declaring a task complete, verify:
 - [ ] Documentation was updated when required.
 - [ ] `Memory.md` was reviewed and updated when durable knowledge changed.
 - [ ] No unrelated user changes were overwritten.
-- [ ] Review was completed; the verdict in `docs/agent/REVIEW_REPORT.md` is `APPROVED` or `APPROVED_WITH_CHANGES`.
+- [ ] Review gate passed per `.agents/STATE_MACHINE.md` and `.agents/ORCHESTRATOR.md` (verdict routing), or limitations are explicitly documented.
+- [ ] Deterministic harness checks in `tests/harness/` pass when the workflow state changed.
 - [ ] Known limitations are documented.
 
 ---
