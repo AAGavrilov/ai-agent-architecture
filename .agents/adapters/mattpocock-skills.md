@@ -61,7 +61,7 @@ docs/agent/PROJECT_SPEC.md
 | `tdd`, `code-review`, `diagnosing-bugs`, `resolving-merge-conflicts`, `wizard`, `improve-codebase-architecture` | смешанный | Запрещены | Execution-дисциплина кода — территория Кодера (Superpowers, адаптер §21). |
 | `handoff`, `teach`, `wait-what`, `writing-for-agents`, `setup-matt-pocock-skills` | смешанный | Вне процесса | Продуктивность пользователя и служебные скиллы; к итерации отношения не имеют. |
 
-Список является проектной политикой, а не свойством mattpocock/skills.
+Список является проектной политикой, а не свойством mattpocock/skills. Флаг `disable-model-invocation` upstream в вендоренных копиях не используется: он молча исключает скилл из обнаружения в части сред (Kimi Code), а режим вызова в пределах роли и так определяет нормативное правило §3.
 
 ---
 

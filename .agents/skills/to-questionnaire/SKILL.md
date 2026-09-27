@@ -1,11 +1,10 @@
 ---
 name: to-questionnaire
 description: Turn a decision you can't fully answer into a questionnaire for someone else to fill in.
-disable-model-invocation: true
 ---
 
 > Вендоренная адаптация скилла `to-questionnaire` из [mattpocock/skills](https://github.com/mattpocock/skills) (MIT; источник — `skills/productivity/to-questionnaire/SKILL.md`).
-> Отличия от upstream: вопросы анкеты несут идентификаторы `Q-NNN` по конвенции `БЛОК 0.1`; анкета живёт в `PROJECT_SPEC`, а не отдельным файлом в текущей директории; экземпляр для вручения — некоммитимый рабочий файл. Дисциплина анкеты сохранена исходной. Дрейф от upstream намеренный (`.agents/adapters/mattpocock-skills.md`, §4).
+> Отличия от upstream: вопросы анкеты несут идентификаторы `Q-NNN` по конвенции `БЛОК 0.1`; анкета живёт в `PROJECT_SPEC`, а не отдельным файлом в текущей директории; экземпляр для вручения — некоммитимый рабочий файл; снят флаг `disable-model-invocation` — он молча исключает скилл из обнаружения в части harness'ов (например, Kimi Code). Дисциплина анкеты сохранена исходной. Дрейф от upstream намеренный (`.agents/adapters/mattpocock-skills.md`, §4).
 
 Преврати то, что пользователь не может решить в одиночку, в **анкету**: документ для одного адресата, который заполнит её асинхронно или ответит при совместном разборе. Адресат знает то, чего не знает пользователь; анкета должна это извлечь.
 
