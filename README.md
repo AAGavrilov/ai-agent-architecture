@@ -19,7 +19,8 @@ ai-agent-architecture/
 │   │   └── 03-review.md          ← Ревьювер   → docs/agent/REVIEW_REPORT.md
 │   │
 │   └── adapters/
-│       └── superpowers.md        ← execution-layer Кодера (obra/superpowers)
+│       ├── superpowers.md        ← execution-layer Кодера (obra/superpowers)
+│       └── mattpocock-skills.md  ← execution-layer Архитектора (mattpocock/skills)
 │
 ├── .opencode/
 │   └── INSTALL.md         ← политика bootstrap Superpowers по ролям
@@ -39,4 +40,4 @@ ai-agent-architecture/
 
 - Постоянные правила работы агентов — `AGENTS.md`.
 - Протокол итерации: порядок запуска ролей, маршрутизация по verdict, критерии остановки — `.agents/ORCHESTRATOR.md`.
-- Подключение Superpowers — `.agents/adapters/superpowers.md` и `.opencode/INSTALL.md`.
+- Execution-слои ролей (Superpowers для Кодера, mattpocock/skills для Архитектора) — `.agents/adapters/`; политика bootstrap Superpowers — `.opencode/INSTALL.md`.

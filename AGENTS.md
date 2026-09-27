@@ -311,32 +311,34 @@ A task is not complete until the Review stage is satisfied or all known limitati
 
 ---
 
-## 9. Superpowers Integration
+## 9. Execution-Layer Integrations
 
-Superpowers is used as the engineering workflow layer.
+Each role has at most one execution-layer tool integration. Adapters define them:
 
-The project-specific integration is defined in:
+- Superpowers ([obra/superpowers](https://github.com/obra/superpowers)) is the Coder-side execution layer: `.agents/adapters/superpowers.md`
+- mattpocock/skills is the Architect-side execution layer: `.agents/adapters/mattpocock-skills.md`
 
-`.agents/adapters/superpowers.md`
+The Reviewer deliberately has no execution layer: independence is the value of the Review stage.
 
 The responsibilities are separated as follows:
 
 - `AGENTS.md` defines permanent project rules.
 - `Memory.md` contains persistent project knowledge.
-- Superpowers is the Coder-side execution layer (execution-only): it does not design architecture and does not replace the independent Reviewer. Its bootstrap and skills apply only to Coder sessions (universal rule below).
-- `.agents/adapters/superpowers.md` connects Superpowers to the project workflow.
+- Execution layers are execution-only: Superpowers does not design architecture; mattpocock/skills does not make design decisions instead of the Architect. Neither replaces the independent Reviewer.
+- The adapter files connect each tool to the project workflow.
 - The three project prompts define the behavior of the individual development stages.
 
-The role restriction is universal and harness-independent:
+The role restriction is universal, tool- and harness-independent:
 
-- Normative baseline, valid in every environment: outside the Coder session, the Superpowers bootstrap (`using-superpowers`) and its skills are ignored — the Architect works only by `.agents/prompts/01-analysis.md`, the Reviewer only by `.agents/prompts/03-review.md`. Every role session must read `AGENTS.md` and its role prompt before starting work (`.agents/ORCHESTRATOR.md`, section 3), so this rule binds any agent that runs the iteration protocol, regardless of the harness or of whether Superpowers is installed there.
-- Technical suppression is optional per-harness hardening: it prevents the bootstrap from injecting skills into the context at all and is configured where Superpowers is installed (for opencode: `.opencode/INSTALL.md`). It never replaces the normative baseline.
+- Normative baseline, valid in every environment: outside its own role's session, an integrated tool's bootstrap and skills are ignored — the Architect works only by `.agents/prompts/01-analysis.md` (plus the mattpocock/skills allowlist), the Coder only by `.agents/prompts/02-implementation.md` (plus the Superpowers allowlist), the Reviewer only by `.agents/prompts/03-review.md` with no skill layers at all. Every role session must read `AGENTS.md` and its role prompt before starting work (`.agents/ORCHESTRATOR.md`, section 3), so this rule binds any agent that runs the iteration protocol, regardless of the harness or of whether the tools are installed there.
+- Technical suppression is optional per-harness hardening: it prevents a tool's bootstrap or skills from entering the context at all and is configured where the tool is installed (for Superpowers in opencode: `.opencode/INSTALL.md`). It never replaces the normative baseline.
+- When a skill's output format or process conflicts with the project contract (artifacts as files in `docs/agent/`, the identifier convention, role prompt output templates), the contract wins.
 
-Do not duplicate the full Superpowers workflow inside `AGENTS.md`.
+Do not duplicate the full workflow of an integrated tool inside `AGENTS.md`.
 
 Do not duplicate the complete contents of the three project prompts inside `AGENTS.md`.
 
-The adapter should remain a thin integration layer.
+Each adapter should remain a thin integration layer.
 
 ---
 
