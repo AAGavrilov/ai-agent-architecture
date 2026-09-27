@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
-# Проверяет идентификаторы артефактов в docs/agent/*.md:
-#  - формат PREFIX-NNN (или REQ-HARNESS-NNN) вне code spans;
-#  - отсутствие дубликатов определений одного ID в одном файле;
-#  - отсутствие ссылок на несуществующие REQ-* (определение REQ-*: bold **REQ-...**
-#    или первая ячейка таблицы с заголовком 'ID'/'REV-ID').
+# Глобальная проверка contract identifiers (REQ-HARNESS-014/015).
+#
+# Scope definitions/references:
+#   docs/ (agent + architecture), .agents/*.md, .agents/adapters/*.md,
+#   Memory.md, AGENTS.md, README.md
+# Явные исключения (не сканируются):
+#   .agents/prompts/ — канонические примеры форматов БЛОК 0.1 (шаблоны, не ID);
+#   tests/harness/    — код валидаторов и fixtures.
+#
+# Definition patterns (синтаксические, владение по артефакту):
+#   - bold:        **REQ-001**
+#   - heading:     ### REQ-HARNESS-001
+#   - table cell:  первая ячейка таблицы с заголовком 'ID' (PROJECT_SPEC/IMPLEMENTATION)
+#                  или 'REV-ID' (только REVIEW_REPORT — REV-* определяет ревьюер).
+# Проверяет:
+#   - формат PREFIX-NNN (или REQ-HARNESS-NNN) вне code spans;
+#   - глобальную уникальность definitions (дубликаты → FAIL);
+#   - dangling references (REFERENCES - DEFINITIONS → FAIL, без молчаливых исключений).
 # Источники: файловая система, разбор Markdown. Без LLM.
+#
+# Использование: check-contracts.sh [CONTRACTS_GLOB]  (env CONTRACTS_GLOB="dir/*.md")
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
@@ -17,11 +32,23 @@ BAD_RE="(${PREFIXES})(-HARNESS)?-[0-9][0-9A-Za-z]*"
 failures=0
 fail() { echo "FAIL: $*" >&2; failures=1; }
 
+if [[ -n "${CONTRACTS_GLOB:-}" ]]; then
+  scope_glob="$CONTRACTS_GLOB"
+else
+  scope_glob="docs/agent/*.md docs/architecture/*.md .agents/*.md .agents/adapters/*.md Memory.md AGENTS.md README.md"
+fi
+
+files=()
+for g in $scope_glob; do
+  for f in $g; do [[ -f "$f" ]] && files+=("$f"); done
+done
+[[ "${#files[@]}" -gt 0 ]] || { echo "FAIL: no files match scope: $scope_glob" >&2; exit 1; }
+
 strip_code() { # удаляет fenced-блоки и inline-code, чтобы команды вида grep "DEC-00" не считались ID
   awk '/^```/{infence=!infence;next} !infence' "$1" | sed -E 's/`[^`]*`//g'
 }
 
-table_defs() { # ID из первых ячеек таблиц с заголовком 'ID' или 'REV-ID'
+table_defs() { # table-first-cell definitions с владением по артефакту
   awk -v idre="$ID_RE" '
     /^\s*\|/ {
       n = split($0, cells, "|")
@@ -29,16 +56,22 @@ table_defs() { # ID из первых ячеек таблиц с заголов�
       gsub(/^[ \t]+|[ \t]+$/, "", first)
       if (header == "") { header = first; next }
       if (first ~ /^:?-+:?$/) next
-      if ((header == "ID" || header == "REV-ID") && first ~ "^`?" idre "`?$") print first
+      if ((header == "ID" || header == "REV-ID") && first ~ "^`?" idre "`?$") { gsub(/`/, "", first); print first }
       next
     }
     { header = "" }
   ' "$1"
 }
 
-REQ_DEFS_ALL=""
-for f in docs/agent/*.md; do
-  [[ -f "$f" ]] || continue
+table_owner_ok() { # prefix file — REV-* определяет только REVIEW_REPORT
+  case "$1" in
+    REV-*) [[ "$2" == *REVIEW_REPORT.md ]] ;;
+    *)     [[ "$2" == *PROJECT_SPEC.md || "$2" == *IMPLEMENTATION.md ]] ;;
+  esac
+}
+
+DEFS_ALL=""
+for f in "${files[@]}"; do
   stripped="$(strip_code "$f")"
 
   # malformed identifiers
@@ -46,29 +79,33 @@ for f in docs/agent/*.md; do
     [[ "$tok" =~ ^${ID_RE}$ || "$tok" =~ ^REQ-HARNESS-[0-9]{3}$ ]] || fail "$f: malformed identifier '$tok'"
   done < <(grep -oE "$BAD_RE" <<<"$stripped" | sort -u)
 
-  # definitions: bold + табличные; дубликаты в пределах файла
-  defs="$({ grep -oE "\*\*${ID_RE}\*\*" <<<"$stripped" | sed -E 's/^\*\*|\*\*$//g'; table_defs "$f"; } | sort)"
-  dups="$(uniq -d <<<"$defs" | grep -v '^$' || true)"
-  [[ -z "$dups" ]] || fail "$f: duplicate identifier definitions: $(tr '\n' ' ' <<<"$dups")"
-
-  # REQ-definitions для проверки dangling references
-  REQ_DEFS_ALL="$REQ_DEFS_ALL
-$(grep -oE "\*\*REQ(-HARNESS)?-[0-9]{3}\*\*" <<<"$stripped" | sed -E 's/^\*\*|\*\*$//g')
-$(table_defs "$f" | grep -E '^REQ(-HARNESS)?-[0-9]{3}$' || true)"
+  # definitions: bold + headings + табличные (с владением)
+  defs="$(
+    { grep -oE "\*\*${ID_RE}\*\*" <<<"$stripped" | sed -E 's/^\*\*|\*\*$//g'
+      grep -E "^#{1,6} ${ID_RE}\s*$" <<<"$stripped" | grep -oE "$ID_RE"
+      while IFS= read -r id; do
+        table_owner_ok "$id" "$f" && echo "$id"
+      done < <(table_defs "$f")
+      true
+    } | sort -u
+  )"
+  DEFS_ALL="$DEFS_ALL
+$defs"
 done
 
-REQ_DEFS_ALL="$(sort -u <<<"$REQ_DEFS_ALL" | grep -v '^$' || true)"
+# Глобальные дубликаты definitions
+dups="$(sort <<<"$(grep -v '^$' <<<"$DEFS_ALL")" | uniq -d | grep -v '^$' || true)"
+[[ -z "$dups" ]] || fail "duplicate global identifier definitions: $(tr '\n' ' ' <<<"$dups")"
 
-# dangling REQ references
-for f in docs/agent/*.md; do
-  [[ -f "$f" ]] || continue
+# Dangling references
+for f in "${files[@]}"; do
   stripped="$(strip_code "$f")"
   while IFS= read -r ref; do
-    grep -qx "$ref" <<<"$REQ_DEFS_ALL" || fail "$f: reference to non-existing requirement '$ref'"
-  done < <(grep -oE "REQ(-HARNESS)?-[0-9]{3}" <<<"$stripped" | sort -u)
+    grep -qx "$ref" <<<"$DEFS_ALL" || fail "$f: dangling identifier '$ref'"
+  done < <(grep -oE "$ID_RE" <<<"$stripped" | sort -u)
 done
 
 if [[ "$failures" -eq 0 ]]; then
-  echo "PASS: contract identifiers in docs/agent/ (REQ defs: $(wc -l <<<"$REQ_DEFS_ALL"))"
+  echo "PASS: global contract identifiers (${#files[@]} files, defs: $(grep -v '^$' <<<"$DEFS_ALL" | sort -u | wc -l | tr -d ' '))"
 fi
 exit "$failures"
