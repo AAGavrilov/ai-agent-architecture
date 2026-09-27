@@ -74,6 +74,8 @@ Superpowers (см. `.agents/adapters/superpowers.md`) — execution-layer Код
 
 ### 4. VERDICT SEMANTICS
 
+Каноническая transition matrix определена только в `.agents/STATE_MACHINE.md`; здесь — семантика вердиктов и их маршрутизация.
+
 #### APPROVED
 
 Текущая реализация удовлетворяет применимому архитектурному контракту и требуемые доказательства верификации присутствуют.
@@ -250,6 +252,24 @@ State 2: REVIEW_READY -> COMPLETED
     STATE.md MUST NEVER reference a commit SHA that does not yet exist.
 
 `STATE.md` — runtime metadata, а не implementation artifact: baseline-диффы исключают его (см. exclusion list в `.agents/HARNESS_CONTRACT.md`).
+
+### 12. CI VERIFICATION
+
+После push соответствующего коммита:
+
+1. Определи точный commit SHA.
+2. Найди GitHub Actions run, связанный с этим SHA.
+3. Убедись, что run существует.
+4. Если run ещё выполняется — не объявляй успех.
+5. После завершения прочитай conclusion.
+6. Проверь, что job harness завершился успешно.
+7. Зафиксируй `CI_PASSED` только при наблюдаемых доказательствах.
+8. Если результат наблюдать нельзя — зафиксируй `CI_UNVERIFIABLE`.
+9. Никогда не выводи успех CI из одного факта существования workflow.
+
+Запрещено использовать «latest run» как доказательство: run должен иметь `head_sha == <проверяемый SHA>`; иначе успешный старый run может быть ошибочно приписан новому коммиту.
+
+CI verification state (`CI_NOT_STARTED` / `CI_TRIGGERED` / `CI_RUNNING` / `CI_PASSED` / `CI_FAILED` / `CI_UNVERIFIABLE`) ведётся отдельно от core workflow state machine: CI — внешний enforcement-механизм, а не роль продукта. Эти состояния не добавляются в `.agents/STATE_MACHINE.md`.
 
 ### ФИНАЛЬНОЕ ПРАВИЛО
 

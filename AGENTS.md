@@ -604,3 +604,25 @@ Prefer solutions that are:
 The goal is not merely to produce working code.
 
 The goal is to leave the repository in a state where the next development session can understand what was done, why it was done, and how to continue safely.
+
+---
+
+## 26. Source of Truth
+
+1. `.agents/STATE_MACHINE.md`
+   defines legal workflow states and transitions.
+
+2. `.agents/HARNESS_CONTRACT.md`
+   defines deterministic framework invariants.
+
+3. `docs/agent/STATE.md`
+   defines the current runtime state.
+
+4. Git history
+   provides historical evidence.
+
+5. `Memory.md`
+   contains durable framework knowledge and historical notes,
+   but is not runtime state.
+
+`docs/examples/` contains historical/example material and is not runtime evidence.
