@@ -19,7 +19,9 @@ ai-agent-architecture/
 │   │   └── 03-review.md          ← Ревьювер   → docs/agent/REVIEW_REPORT.md
 │   │
 │   ├── skills/
-│   │   └── grilling/SKILL.md     ← вендоренный скилл Архитектора (mattpocock/skills)
+│   │   ├── grilling/SKILL.md           ← вендоренные адаптированные скиллы
+│   │   ├── to-questionnaire/SKILL.md     Архитектора (mattpocock/skills)
+│   │   └── research/SKILL.md
 │   │
 │   └── adapters/
 │       ├── superpowers.md        ← execution-layer Кодера (obra/superpowers)

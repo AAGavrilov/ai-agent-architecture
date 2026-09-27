@@ -51,7 +51,7 @@ docs/agent/PROJECT_SPEC.md
 | `grilling` | model-invoked | Разрешён | Примитив структурированного интервью: закрытие `Q-*` и фиксация `ASM-*` до проектирования. Прямая поддержка `Q-001` из `ORCHESTRATOR.md`. |
 | `to-questionnaire` | user-invoked | Разрешён | Упаковка нерешённой развилки в анкету для человека — готовый формат для `Q-*`. |
 | `research` | model-invoked | Разрешён | Исследование с первоисточниками для выбора стека и ограничений. Подчиняется `БЛОК 0.3`/`0.5`: не выдумывать версии и значения; недоказанное — `NOT_TESTED`/`POTENTIAL`. |
-| `grill-me` | user-invoked | Разрешён | Оболочка `grilling` для ручного запуска интервью. |
+| `grill-me` | user-invoked | Покрыт | Не вендорится: user-invoked обёртка над `grilling`; trigger-фразы уже включены в описание вендоренной копии (`DEC-001`). |
 | `ask-matt` | user-invoked | Ограничен | Только навигация по скиллам; рекомендации роутера не расширяют этот allowlist. |
 | `domain-modeling` | model-invoked | Отложен | Полезен для глоссария, но вводит артефакт `CONTEXT.md` поверх `PROJECT_SPEC`. Включить только после адаптации под секции спеки. |
 | `prototype` | model-invoked | Запрещён | Бросовый код размывает границу ролей: Архитектор кода не создаёт. |
@@ -93,7 +93,9 @@ Upstream предлагает два взаимно исключающих сп�
 Текущее состояние установки:
 
 * `grilling` — вендорен адаптированной копией: `.agents/skills/grilling/SKILL.md` (источник upstream: `skills/productivity/grilling/SKILL.md`);
-* `to-questionnaire`, `research`, `grill-me` — разрешены (§2), но пока не установлены.
+* `to-questionnaire` — вендорен адаптированной копией: `.agents/skills/to-questionnaire/SKILL.md` (источник upstream: `skills/productivity/to-questionnaire/SKILL.md`);
+* `research` — вендорен адаптированной копией: `.agents/skills/research/SKILL.md` (источник upstream: `skills/engineering/research/SKILL.md`);
+* `grill-me` — не вендорится, покрыт `grilling` (§2, `DEC-001`).
 
 ---
 
