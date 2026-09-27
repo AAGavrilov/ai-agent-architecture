@@ -177,6 +177,33 @@ HALTED MUST contain:
 - last valid state;
 - evidence describing the halt condition.
 
+### REQ-HARNESS-029
+
+The implementation commit referenced by STATE.md is the last implementation
+artifact, not necessarily HEAD.
+
+`HEAD != current implementation commit` is allowed (framework documentation
+may be committed on top of a completed or halted workflow).
+
+### REQ-HARNESS-030
+
+Identifier definitions MUST use the documented syntactic forms:
+
+- bold (`**REQ-001**`);
+- heading (`### REQ-HARNESS-001`);
+- artifact-owned table row (first cell under an `ID` / `REV-ID` header).
+
+Any other occurrence of an identifier is a reference and MUST resolve to a
+definition; an unresolvable reference is a dangling identifier and fails the
+harness. Alternative definition styles (for example `REQ-001 — text` in prose)
+are not definitions and therefore produce dangling references.
+
+### REQ-HARNESS-031
+
+Q-* definitions MUST live in the active workflow artifacts (`docs/agent/`).
+
+A WAITING_HUMAN blocking Q-* that has no definition there fails the harness.
+
 ## Validator mapping
 
 ```text
@@ -200,6 +227,8 @@ check-state.sh
     → REQ-HARNESS-026
     → REQ-HARNESS-027
     → REQ-HARNESS-028
+    → REQ-HARNESS-029
+    → REQ-HARNESS-031
 ```
 
 ```text
@@ -211,6 +240,7 @@ ORCHESTRATOR.md (CI Verification, §12)
 check-contracts.sh
     → REQ-HARNESS-014
     → REQ-HARNESS-015
+    → REQ-HARNESS-030
 ```
 
 ```text

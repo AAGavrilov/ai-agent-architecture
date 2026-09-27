@@ -30,6 +30,8 @@ Role prompts MAY explain how a role performs work inside an allowed state.
 
 ## Transition rules
 
+### Normal transitions
+
 INIT
   -> ARCHITECTURE_PENDING
 
@@ -71,21 +73,31 @@ REVIEW_READY
   when verdict = REJECTED
   and architecture revision limit is not exceeded
 
-Any non-terminal state
-  -> WAITING_HUMAN
-  when blocking Q-* exists and no approved ASM-* can resolve it
-
 WAITING_HUMAN
   -> suspended state
   when human answer is received
 
-Any non-terminal state
+### Escalation transitions
+
+Escalation applies from any non-terminal state (including WAITING_HUMAN):
+
+any non-terminal state
+  -> WAITING_HUMAN
+  when an unresolved blocking Q-* exists
+
+any non-terminal state
   -> HALTED
   when a configured limit is exceeded
 
-Any non-terminal state
+any non-terminal state
   -> HALTED
   when an unrecoverable protocol violation occurs
+
+A blocking Q-* is unresolved when no approved ASM-* resolves it
+(see ORCHESTRATOR.md, Q-* AND ASM-* PROTOCOL).
+
+Escalation never applies from a terminal state, and never targets the
+source state itself (no self-loop).
 
 ## Terminal states
 

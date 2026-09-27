@@ -166,6 +166,14 @@ if [[ "$STATE" == "HALTED" ]]; then
   grep -qw "$SUSPENDED" <<<"$VALID_STATES" || fail "HALTED but suspended state '$SUSPENDED' is not a valid state"
   [[ "$FROM" == "$SUSPENDED" ]] || fail "HALTED: suspended state '$SUSPENDED' must equal last transition From '$FROM'"
   [[ "$HALT_EVIDENCE" != "null" ]] || fail "HALTED but halt evidence is null (REQ-HARNESS-028 requires evidence of the halt condition)"
+  case "$HALT_REASON" in
+    ITERATION_LIMIT)
+      (( IMPL_ITER > MAX_IMPL_ITERATIONS )) || fail "HALTED/ITERATION_LIMIT but implementation_iteration $IMPL_ITER does not exceed limit $MAX_IMPL_ITERATIONS" ;;
+    ARCHITECTURE_REVISION_LIMIT)
+      (( ARCH_REV > MAX_ARCH_REVISIONS )) || fail "HALTED/ARCHITECTURE_REVISION_LIMIT but architecture_revision $ARCH_REV does not exceed limit $MAX_ARCH_REVISIONS" ;;
+    NO_PROGRESS)
+      (( NOPROGRESS >= MAX_NO_PROGRESS )) || fail "HALTED/NO_PROGRESS but no_progress_count $NOPROGRESS is below limit $MAX_NO_PROGRESS" ;;
+  esac
 fi
 
 if [[ "$STATE" == "WAITING_HUMAN" ]]; then
@@ -177,9 +185,11 @@ if [[ "$STATE" == "WAITING_HUMAN" ]]; then
     || fail "WAITING_HUMAN references unknown $BLOCKING_Q (not found in docs/agent artifacts)"
 fi
 
-# --- Semantic transition matrix + verdict routing (§14–15) ---
+# --- Transition relation (§6–8, §14–15): NORMAL + ESCALATION ---
+# NORMAL — рабочие переходы; ESCALATION — escape route из любого non-terminal
+# состояния в WAITING_HUMAN / HALTED (без self-loop и без выхода из terminal).
 
-transition_allowed() {
+normal_transition_allowed() {
   local from="$1" to="$2"
   case "$from" in
     null) [[ "$to" == "INIT" ]] ;;
@@ -191,12 +201,20 @@ transition_allowed() {
     REVIEW_PENDING) [[ "$to" == "REVIEW_READY" ]] ;;
     REVIEW_READY) [[ "$to" == "COMPLETED" || "$to" == "IMPLEMENTATION_PENDING" || "$to" == "ARCHITECTURE_PENDING" ]] ;;
     WAITING_HUMAN) [[ "$SUSPENDED" != "null" && "$to" == "$SUSPENDED" ]] ;;
-    COMPLETED|HALTED) return 1 ;; # terminal: no outgoing transitions (§53)
-    *) [[ "$to" == "WAITING_HUMAN" || "$to" == "HALTED" ]] ;;
+    *) return 1 ;; # terminal states and unknown sources have no normal transitions
   esac
 }
 
-transition_allowed "$FROM" "$TO" || fail "illegal transition: $FROM -> $TO (state machine: .agents/STATE_MACHINE.md)"
+escalation_transition_allowed() {
+  local from="$1" to="$2"
+  [[ "$from" != "COMPLETED" && "$from" != "HALTED" ]] || return 1 # terminal: no outgoing transitions
+  [[ "$from" != "$to" ]] || return 1                              # no self-loop
+  [[ "$to" == "WAITING_HUMAN" || "$to" == "HALTED" ]]
+}
+
+normal_transition_allowed "$FROM" "$TO" \
+  || escalation_transition_allowed "$FROM" "$TO" \
+  || fail "illegal transition: $FROM -> $TO (state machine: .agents/STATE_MACHINE.md)"
 
 case "$FROM->$TO" in
   "REVIEW_READY->COMPLETED")
@@ -212,13 +230,10 @@ esac
 
 # --- Commit subjects и нумерация (§17–18, §55) ---
 
-check_subject() { # label sha pattern expected_number
-  local label="$1" sha="$2" pattern="$3" expected="$4"
+num_of() { # sha type -> number (пусто, если subject не конформный)
   local subj
-  subj="$(subject_of "$sha")"
-  [[ "$subj" =~ $pattern ]] || fail "$label $sha has non-conforming subject: '$subj'"
-  local n="${BASH_REMATCH[1]}"
-  [[ "$n" == "$expected" ]] || fail "$label $sha is '$subj' but expected number $expected"
+  subj="$(subject_of "$1")"
+  [[ "$subj" =~ ^$2\ ([0-9]+): ]] && echo "${BASH_REMATCH[1]}"
 }
 
 if [[ "$ARCH_COMMIT" != "null" ]]; then
@@ -228,11 +243,39 @@ if [[ "$ARCH_COMMIT" != "null" ]]; then
     check_subject "Architecture commit" "$ARCH_COMMIT" '^Architecture ([0-9]+):' "$ARCH_REV"
   fi
 fi
-[[ "$CUR_IMPL_COMMIT" != "null" ]] && check_subject "Current implementation commit" "$CUR_IMPL_COMMIT" '^Iteration ([0-9]+):' "$IMPL_ITER"
-[[ "$REVIEW_COMMIT" != "null" ]] && check_subject "Review commit" "$REVIEW_COMMIT" '^Review ([0-9]+):' "$REVIEW_ITER"
+
+# Текущий implementation commit — последний implementation-артефакт, не HEAD (§13).
+# Строгое равенство с implementation_iteration требуется там, где итерация закоммичена;
+# в HALTED по лимиту итерация N не закоммичена — допускается N последнего коммита <= IMPL_ITER.
+if [[ "$CUR_IMPL_COMMIT" != "null" ]]; then
+  n="$(num_of "$CUR_IMPL_COMMIT" 'Iteration')"
+  [[ -n "$n" ]] || fail "Current implementation commit $CUR_IMPL_COMMIT has non-conforming subject: '$(subject_of "$CUR_IMPL_COMMIT")'"
+  if [[ "$STATE" == "IMPLEMENTATION_READY" ]]; then
+    [[ "$n" == "$IMPL_ITER" ]] || fail "Current implementation commit is 'Iteration $n' but implementation_iteration is $IMPL_ITER"
+  else
+    (( n <= IMPL_ITER )) || fail "Current implementation commit is 'Iteration $n' but implementation_iteration is only $IMPL_ITER"
+  fi
+fi
+
+if [[ "$REVIEW_COMMIT" != "null" ]]; then
+  n="$(num_of "$REVIEW_COMMIT" 'Review')"
+  [[ -n "$n" ]] || fail "Review commit $REVIEW_COMMIT has non-conforming subject: '$(subject_of "$REVIEW_COMMIT")'"
+  if [[ "$STATE" == "REVIEW_READY" ]]; then
+    [[ "$n" == "$REVIEW_ITER" ]] || fail "Review commit is 'Review $n' but review_iteration is $REVIEW_ITER"
+  else
+    (( n <= REVIEW_ITER )) || fail "Review commit is 'Review $n' but review_iteration is only $REVIEW_ITER"
+  fi
+fi
+
 if [[ "$PREV_IMPL_COMMIT" != "null" ]]; then
   (( IMPL_ITER >= 2 )) || fail "Previous implementation commit set but Implementation iteration is $IMPL_ITER"
-  check_subject "Previous implementation commit" "$PREV_IMPL_COMMIT" '^Iteration ([0-9]+):' "$((IMPL_ITER - 1))"
+  n="$(num_of "$PREV_IMPL_COMMIT" 'Iteration')"
+  [[ -n "$n" ]] || fail "Previous implementation commit $PREV_IMPL_COMMIT has non-conforming subject: '$(subject_of "$PREV_IMPL_COMMIT")'"
+  if [[ "$STATE" == "IMPLEMENTATION_READY" ]]; then
+    (( n == IMPL_ITER - 1 )) || fail "Previous implementation commit is 'Iteration $n' but expected Iteration $((IMPL_ITER - 1))"
+  else
+    (( n < IMPL_ITER )) || fail "Previous implementation commit is 'Iteration $n' but implementation_iteration is $IMPL_ITER"
+  fi
 fi
 
 # --- Согласованность счётчиков и коммитов ---
