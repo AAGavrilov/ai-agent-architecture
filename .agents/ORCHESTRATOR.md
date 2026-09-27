@@ -155,6 +155,8 @@ Blocking `Q-*` обрабатываются по разделу «Q-* AND ASM-* 
 
 Агент MUST NOT молча понижать `Q-*` до `ASM-*`.
 
+`Q-*` считается resolved, когда зафиксирован одобренный `ASM-*` или получен ответ человека; до этого blocking `Q-*` остаётся unresolved и удерживает workflow в `WAITING_HUMAN`.
+
 ### 8. LIMITS
 
 Workflow использует независимые счётчики (см. `docs/agent/STATE.md`):
