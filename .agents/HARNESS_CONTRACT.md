@@ -261,6 +261,20 @@ valid when:
 No role may perform workflow work in INIT, so the escalation is raised by the
 orchestrator or the human.
 
+### REQ-HARNESS-035
+
+A Q-* is unresolved if and only if no APPROVED ASM-* declares that it
+`Resolves` that Q-*.
+
+WAITING_HUMAN requires the blocking Q-* to be unresolved.
+
+Covering fixtures:
+
+```text
+tests/harness/fixtures/valid-waiting-human-unresolved          → PASS
+tests/harness/fixtures/invalid-waiting-human-resolved-by-asm    → FAIL
+```
+
 ## Validator mapping
 
 ```text
@@ -288,6 +302,7 @@ check-state.sh
     → REQ-HARNESS-031
     → REQ-HARNESS-033
     → REQ-HARNESS-034
+    → REQ-HARNESS-035
 ```
 
 ```text
