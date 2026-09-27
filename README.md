@@ -18,10 +18,10 @@ ai-agent-architecture/
 │   │   ├── 02-implementation.md  ← Кодер      → docs/agent/IMPLEMENTATION.md
 │   │   └── 03-review.md          ← Ревьювер   → docs/agent/REVIEW_REPORT.md
 │   │
-│   ├── skills/
-│   │   ├── grilling/SKILL.md           ← вендоренные адаптированные скиллы
-│   │   ├── to-questionnaire/SKILL.md     Архитектора (mattpocock/skills)
-│   │   └── research/SKILL.md
+│   ├── skills/                        ← вендоренные скиллы Архитектора
+│   │   ├── grilling/SKILL.md          ← (mattpocock/skills, адаптированные
+│   │   ├── to-questionnaire/SKILL.md  ←  под контракт проекта; см. адаптер
+│   │   └── research/SKILL.md          ←  .agents/adapters/mattpocock-skills.md)
 │   │
 │   └── adapters/
 │       ├── superpowers.md        ← execution-layer Кодера (obra/superpowers)

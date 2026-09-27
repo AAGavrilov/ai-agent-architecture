@@ -4,7 +4,7 @@ description: Investigate a question against high-trust primary sources and deliv
 ---
 
 > Вендоренная адаптация скилла `research` из [mattpocock/skills](https://github.com/mattpocock/skills) (MIT; источник — `skills/engineering/research/SKILL.md`).
-> Отличия от upstream: находки не сохраняются отдельным Markdown-файлом в репозитории — они переносятся в предметные секции `PROJECT_SPEC` с цитированием (DEC-002); механика поиска сформулирована harness-нейтрально (DEC-004). Дрейф от upstream намеренный (`.agents/adapters/mattpocock-skills.md`, §4).
+> Отличия от upstream: находки не сохраняются отдельным Markdown-файлом в репозитории — они переносятся в предметные секции `PROJECT_SPEC` с цитированием (DEC-002; якорь — адаптер, §2); механика поиска сформулирована harness-нейтрально (DEC-004; якорь — адаптер, §2). Дрейф от upstream намеренный (`.agents/adapters/mattpocock-skills.md`, §4).
 
 Исследуй вопрос по **первоисточникам** и не блокируй основную работу.
 
