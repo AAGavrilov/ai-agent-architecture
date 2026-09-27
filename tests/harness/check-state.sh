@@ -5,8 +5,13 @@
 #  - semantic transition matrix и verdict routing (REQ-HARNESS-018/019/020);
 #  - commit subjects и нумерация соответствуют counters (Iteration N == implementation_iteration);
 #  - SHA резолвятся, лимиты enforced (REQ-HARNESS-016/017);
-#  - HALTED: halt_reason из enum, suspended == last valid state (REQ-HARNESS-021);
-#  - WAITING_HUMAN: suspended + blocking Q (существует в артефактах) + suspension reason (REQ-HARNESS-022).
+#  - HALTED: halt_reason из enum, halt evidence, suspended == last valid state,
+#    halt_reason соответствует фактическому лимиту (REQ-HARNESS-021/028);
+#  - WAITING_HUMAN: suspended state + blocking Q + suspension reason + Q существует
+#    в активных артефактах + отсутствие approved ASM-*, разрешающего этот Q
+#    (REQ-HARNESS-022/026/027/033);
+#  - template mode: State INIT и отсутствие iteration-артефактов в активной директории (REQ-HARNESS-025).
+# Env: STATE_FILE, AGENT_ARTIFACTS_DIR (default docs/agent).
 # Источники: Git, файловая система, разбор Markdown. Без LLM.
 #
 # Использование: check-state.sh [путь-к-STATE.md]  (или env STATE_FILE=...)
@@ -179,7 +184,10 @@ if [[ "$STATE" == "HALTED" ]]; then
 fi
 
 if [[ "$STATE" == "WAITING_HUMAN" ]]; then
-  # §22–24 + REQ-HARNESS-033
+  # Полный набор проверок состояния:
+  #   suspended state (валидное состояние) + blocking Q формата Q-NNN + suspension reason;
+  #   Q существует в активных артефактах; ни одно approved ASM-* его не разрешает
+  #   (REQ-HARNESS-022/026/027/033).
   grep -qw "$SUSPENDED" <<<"$VALID_STATES" || fail "WAITING_HUMAN but suspended state is '$SUSPENDED'"
   [[ "$BLOCKING_Q" =~ ^Q-[0-9]{3}$ ]] || fail "WAITING_HUMAN but blocking question is '$BLOCKING_Q'"
   [[ "$SUSPENSION_REASON" != "null" ]] || fail "WAITING_HUMAN but suspension reason is null"

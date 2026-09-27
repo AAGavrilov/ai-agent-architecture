@@ -240,7 +240,26 @@ Rules:
   ASM-* resolves it.
 
 Both the Q-* definition and the resolving ASM-* MUST live in the active
-workflow artifacts (`docs/agent/`).
+workflow artifacts (`docs/agent/`) and MUST be defined in Markdown files
+(`*.md`).
+
+Definition scope is deliberately limited to Markdown: YAML, JSON, and other
+file types are NOT scanned for Q-*/ASM-* definitions, so the check stays
+deterministic instead of relying on hidden heuristics.
+
+### REQ-HARNESS-034
+
+INIT -> WAITING_HUMAN is a valid bootstrap escalation.
+
+Cycle 0 is NOT exempt from the generic escalation rule; the transition is
+valid when:
+
+- a blocking Q-* exists in the active workflow artifacts;
+- that Q-* is unresolved (no approved ASM-* resolves it);
+- human input is required before Cycle 1 can start.
+
+No role may perform workflow work in INIT, so the escalation is raised by the
+orchestrator or the human.
 
 ## Validator mapping
 
@@ -268,6 +287,7 @@ check-state.sh
     → REQ-HARNESS-029
     → REQ-HARNESS-031
     → REQ-HARNESS-033
+    → REQ-HARNESS-034
 ```
 
 ```text

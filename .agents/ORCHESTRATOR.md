@@ -165,6 +165,8 @@ Blocking `Q-*` обрабатываются по разделу «Q-* AND ASM-* 
 
 Статус, отличный от `APPROVED` (например `PROPOSED`), вопрос не разрешает.
 
+Переход `INIT → WAITING_HUMAN` — допустимая bootstrap escalation (`.agents/STATE_MACHINE.md`, раздел Bootstrap escalation): роль в состоянии `INIT` работать не вправе, поэтому парковку выполняет оркестратор или человек, а после ответа workflow возвращается в `INIT`.
+
 ### 8. LIMITS
 
 Workflow использует независимые счётчики (см. `docs/agent/STATE.md`):

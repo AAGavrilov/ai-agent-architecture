@@ -104,6 +104,24 @@ same line:
 `PROPOSED`) does not resolve the question. See HARNESS_CONTRACT.md,
 REQ-HARNESS-033 and ORCHESTRATOR.md, Q-* AND ASM-* PROTOCOL.
 
+### Bootstrap escalation from INIT
+
+INIT is a non-terminal state and is NOT exempt from the escalation rule:
+
+INIT
+  -> WAITING_HUMAN
+
+Allowed when:
+
+- a blocking Q-* exists;
+- that Q-* is unresolved;
+- human input is required before Cycle 1 can start.
+
+This is a bootstrap escalation, not a normal transition: no role is allowed
+to perform workflow work in INIT, so the orchestrator (or the human) parks
+the instance until the question is answered, and the workflow then resumes
+at INIT.
+
 Escalation never applies from a terminal state, and never targets the
 source state itself (no self-loop).
 
