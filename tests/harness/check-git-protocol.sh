@@ -33,6 +33,14 @@ check_series() { # type: извлекает номера, проверяет н�
 }
 
 arch_nums="$(check_series "Architecture")"
+# Известное отклонение: de-facto Architecture 1 коммит с неконформным сообщением
+# (спека итерации 1 закоммичена до появления формата; история не переписывается).
+# Считаем его Architecture 1; при появлении настоящего 'Architecture 1:' коммита
+# серия даст дубликат и проверка упадёт — явный сигнал устранить неоднозначность.
+EXEMPT_ARCH_FULL="df160b2c033278e1f58263b959e2957bd372038c"
+if git cat-file -e "$EXEMPT_ARCH_FULL^{commit}" 2>/dev/null; then
+  arch_nums="$( { [[ -n "$arch_nums" ]] && echo "$arch_nums"; echo 1; } | sort -n )"
+fi
 impl_nums="$(check_series "Iteration")"
 review_nums="$(check_series "Review")"
 
