@@ -2,6 +2,40 @@
 
 Итерация 2, ветка `iteration/2`. Implementation commit: `4bec754`. Scope: закрытие `REV-001`–`REV-003` из ревью 1 (`c42665d`, `APPROVED_WITH_CHANGES`).
 
+## Workflow Context
+
+- Cycle: 1
+- Architecture revision: 1
+- Previous implementation: `9875a69`
+- Current implementation: `4bec754`
+- Review iteration: 2
+
+## Review Evidence
+
+### Git diff
+
+- Base: `9875a69` (Iteration 1)
+- Target: `4bec754` (Iteration 2)
+
+### Verification commands
+
+```text
+git show --stat 4bec754
+grep -n "DEC-00" .agents/skills/research/SKILL.md .agents/skills/to-questionnaire/SKILL.md .agents/adapters/mattpocock-skills.md
+grep -c '^```bash' docs/agent/IMPLEMENTATION.md
+sed -n '21,25p' README.md
+git diff --stat 9875a69 -- .agents/prompts/
+```
+
+### Contract checks
+
+- `REQ-001`–`REQ-005` не изменялись; статус `PASS` из ревью 1 сохраняется (см. §3 ниже)
+- Заявленный scope `## 6. Changed Files` совпадает с `git show --stat 4bec754` (5 файлов)
+
+### Test results
+
+- `NOT_APPLICABLE`: кодовой базы нет, репозиторий декларативный (без изменений с итерации 1)
+
 ## 1. Verdict
 
 **APPROVED**

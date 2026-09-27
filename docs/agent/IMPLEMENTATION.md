@@ -2,6 +2,33 @@
 
 Итерация 2, ветка `iteration/2`. Вход: `docs/agent/PROJECT_SPEC.md` (без изменений с итерации 1) плюс `docs/agent/REVIEW_REPORT.md` (`c42665d`, вердикт `APPROVED_WITH_CHANGES`). Scope: закрытие `REV-001`, `REV-002`, `REV-003`.
 
+## Workflow Context
+
+- Cycle: 1
+- Architecture revision: 1
+- Implementation iteration: 2
+- Base implementation commit: `9875a69`
+- Current implementation commit: `4bec754`
+- Project spec revision: 1
+
+## Implementation Scope
+
+### Product files
+
+- нет (итерация 2 — только файлы каркаса; `PRODUCT_SCOPE`: `src/`, `tests/` — не затронуты)
+
+### Framework files
+
+- `.agents/adapters/mattpocock-skills.md`
+- `.agents/skills/research/SKILL.md`
+- `.agents/skills/to-questionnaire/SKILL.md`
+- `README.md`
+- `docs/agent/IMPLEMENTATION.md`
+
+### Configuration files
+
+- нет
+
 ## 1. Implementation Status
 
 **DONE.**

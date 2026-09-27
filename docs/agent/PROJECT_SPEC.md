@@ -2,6 +2,11 @@
 
 Итерация 1, ветка `iteration/dry-run`. Задача: вендоринг оставшихся разрешённых скиллов слоя Архитектора (`to-questionnaire`, `research`, судьба `grill-me`) по образцу `grilling`.
 
+## Workflow Context
+
+- Cycle: 1
+- Architecture revision: 1
+
 ## 1. Requirements
 
 - **REQ-001** — Вендорить `to-questionnaire` адаптированной редактируемой копией в `.agents/skills/to-questionnaire/SKILL.md` по образцу `.agents/skills/grilling/SKILL.md`: дисциплина upstream сохраняется; вывод — анкета из вопросов с идентификаторами `Q-NNN` по конвенции `БЛОК 0.1` (см. DEC-003); в шапке — атрибуция upstream (MIT, путь источника) и пометка о намеренном дрейфе.
@@ -137,3 +142,26 @@ Build/typecheck/lint/tests — `NOT_APPLICABLE`: кодовой базы нет,
 4. `research`: без привязки к конкретному harness; находки с цитатами направляются в секции `PROJECT_SPEC`; недоказанное — `NOT_TESTED`/`POTENTIAL`.
 5. Адаптер §2: `grill-me` — «покрыт вендоренным `grilling`»; §4 отражает фактическое состояние установки; `Memory.md` и дерево `README.md` синхронны с ним.
 6. `БЛОК 0` трёх промтов бит-в-бит не изменён; все пути, упомянутые в изменённых файлах, существуют.
+
+## 19. Workflow State Machine Contract
+
+Секция добавлена патчем формализации workflow (2026-09-27): фиксирует контракт state machine каркаса. Каноническое определение transitions — `.agents/STATE_MACHINE.md`; runtime state — `docs/agent/STATE.md`; исполнение — `.agents/ORCHESTRATOR.md`.
+
+- **REQ-HARNESS-001** — State machine существует как отдельный нормативный документ (`.agents/STATE_MACHINE.md`).
+- **REQ-HARNESS-002** — Каждое состояние имеет однозначные допустимые transitions.
+- **REQ-HARNESS-003** — Runtime state хранится только в `docs/agent/STATE.md`.
+- **REQ-HARNESS-004** — `Memory.md` не хранит volatile workflow state.
+- **REQ-HARNESS-005** — Architecture, Implementation и Review имеют однозначные commit contracts.
+- **REQ-HARNESS-006** — Implementation baseline определяется только через implementation commits.
+- **REQ-HARNESS-007** — Review всегда имеет Review commit.
+- **REQ-HARNESS-008** — `Q-*` без safe `ASM-*` переводит workflow в `WAITING_HUMAN`.
+- **REQ-HARNESS-009** — `REJECTED` применяется только к architecture-level failure.
+- **REQ-HARNESS-010** — `POTENTIAL` не является severity.
+- **REQ-HARNESS-011** — Block 0 автоматически проверяется на идентичность.
+- **REQ-HARNESS-012** — Illegal state transitions обнаруживаются автоматически.
+- **REQ-HARNESS-013** — Нельзя перейти в `REVIEW_PENDING` без valid Implementation commit.
+- **REQ-HARNESS-014** — Нельзя перейти в `COMPLETED` без valid Review verdict.
+- **REQ-HARNESS-015** — Iteration limits enforced deterministically.
+- **REQ-HARNESS-016** — NO_PROGRESS limit enforced deterministically.
+- **REQ-HARNESS-017** — `STATE.md` содержит evidence для текущего state.
+- **REQ-HARNESS-018** — Implementation scope может быть сопоставлен с фактическим Git diff.
