@@ -1,3 +1,12 @@
+> **Historical framework-development record.**
+>
+> This document is not the runtime state of a newly instantiated workflow.
+> Runtime state is stored exclusively in `docs/agent/STATE.md`.
+> Kept as an example of a completed workflow cycle (cycle 1, skills vendoring).
+> References to `docs/agent/IMPLEMENTATION.md` / `docs/agent/REVIEW_REPORT.md`
+> inside this document describe locations at the time it was written; the
+> historical body (including verification commands) is preserved unchanged.
+
 # REVIEW_REPORT
 
 Итерация 2, ветка `iteration/2`. Implementation commit: `4bec754`. Scope: закрытие `REV-001`–`REV-003` из ревью 1 (`c42665d`, `APPROVED_WITH_CHANGES`).

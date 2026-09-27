@@ -120,6 +120,63 @@ WAITING_HUMAN MUST contain a suspended state and blocking question.
 
 The aggregate harness MUST fail if any deterministic check fails.
 
+### REQ-HARNESS-024
+
+CI verification is separate from local harness verification.
+
+HARNESS_PASS means:
+
+the deterministic harness completed successfully.
+
+CI_PASS means:
+
+a GitHub Actions run associated with the relevant commit
+completed successfully and the harness job succeeded.
+
+The existence of a workflow run MUST NOT be interpreted as CI_PASS.
+
+### REQ-HARNESS-025
+
+When the repository is operating as a reusable workflow template,
+`docs/agent/STATE.md` MUST represent a fresh workflow instance.
+
+The initial state MUST be:
+
+```text
+State: INIT
+Cycle: 0
+Architecture revision: 0
+Implementation iteration: 0
+Review iteration: 0
+No-progress count: 0
+Verdict: null
+```
+
+Historical artifacts MUST NOT live in the active workflow directory
+(`docs/agent/`); they belong to `docs/examples/` (see the directory
+semantics in `docs/examples/README.md`).
+
+### REQ-HARNESS-026
+
+WAITING_HUMAN MUST contain:
+
+- suspended state;
+- blocking Q identifier;
+- suspension reason.
+
+### REQ-HARNESS-027
+
+The referenced Q-* identifier MUST exist in the repository's
+active workflow artifacts.
+
+### REQ-HARNESS-028
+
+HALTED MUST contain:
+
+- halt reason;
+- last valid state;
+- evidence describing the halt condition.
+
 ## Validator mapping
 
 ```text
@@ -139,6 +196,15 @@ check-state.sh
     → REQ-HARNESS-020
     → REQ-HARNESS-021
     → REQ-HARNESS-022
+    → REQ-HARNESS-025
+    → REQ-HARNESS-026
+    → REQ-HARNESS-027
+    → REQ-HARNESS-028
+```
+
+```text
+ORCHESTRATOR.md (CI Verification, §12)
+    → REQ-HARNESS-024
 ```
 
 ```text

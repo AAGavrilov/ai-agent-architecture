@@ -35,7 +35,7 @@ fail() { echo "FAIL: $*" >&2; failures=1; }
 if [[ -n "${CONTRACTS_GLOB:-}" ]]; then
   scope_glob="$CONTRACTS_GLOB"
 else
-  scope_glob="docs/agent/*.md docs/architecture/*.md .agents/*.md .agents/adapters/*.md Memory.md AGENTS.md README.md"
+  scope_glob="docs/*/*.md docs/*/*/*.md .agents/*.md .agents/adapters/*.md Memory.md AGENTS.md README.md"
 fi
 
 files=()

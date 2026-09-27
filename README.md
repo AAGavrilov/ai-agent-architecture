@@ -33,13 +33,16 @@ ai-agent-architecture/
 │   └── INSTALL.md         ← политика bootstrap Superpowers по ролям
 │
 ├── docs/
-│   ├── agent/             ← контрактные артефакты итерации (машинные, волатильные)
-│   │   ├── PROJECT_SPEC.md
-│   │   ├── IMPLEMENTATION.md
-│   │   ├── REVIEW_REPORT.md
-│   │   └── STATE.md       ← runtime workflow state (счётчики, коммиты, verdict)
-│   └── architecture/      ← курируемая документация для людей
-│       └── HARNESS_ONBOARDING.md ← приёмочный чек-лист новой среды
+│   ├── agent/             ← активный workflow (runtime + контракт)
+│   │   ├── STATE.md       ← runtime workflow state (счётчики, коммиты, verdict)
+│   │   └── PROJECT_SPEC.md
+│   ├── architecture/      ← курируемая документация для людей
+│   │   └── HARNESS_ONBOARDING.md ← приёмочный чек-лист новой среды
+│   └── examples/          ← исторический/примерный материал (не runtime state)
+│       ├── README.md
+│       └── framework-development/
+│           ├── IMPLEMENTATION.md   ← завершённый цикл разработки каркаса
+│           └── REVIEW_REPORT.md
 │
 ├── src/                   ← прикладной код (пока пуст)
 └── tests/
@@ -50,7 +53,7 @@ ai-agent-architecture/
         ├── check-contracts.sh
         ├── check-git-protocol.sh
         ├── run-fixtures.sh     ← unit tests валидаторов (negative fixtures)
-        └── fixtures/           ← ожидаемые FAIL/PASS кейсы (§46)
+        └── fixtures/           ← ожидаемые FAIL/PASS кейсы
 ```
 
 ## Workflow State
