@@ -27,4 +27,4 @@
 ## Открытые вопросы
 
 - Конкретный способ подавления bootstrap Superpowers в opencode зависит от версии и конфигурации установленного Superpowers — здесь он не зафиксирован (внешний harness).
-- `domain-modeling` из mattpocock/skills отложен: тащит артефакт `CONTEXT.md` поверх `PROJECT_SPEC` — включить только после адаптации под секции спеки. Скиллы из allowlist ещё не установлены в harness — декларативная часть (адаптер) есть, установки пока нет.
+- `domain-modeling` из mattpocock/skills отложен: тащит артефакт `CONTEXT.md` поверх `PROJECT_SPEC` — включить только после адаптации под секции спеки. Из allowlist вендорен только `grilling` — адаптированной копией в `.agents/skills/grilling/SKILL.md` (вывод сразу в `Q-*`/`ASM-*`); `to-questionnaire`, `research`, `grill-me` разрешены, но не установлены. Привязка вендоренных скиллов к конкретному harness (ссылки/конфиги скилл-директорий) не сделана.
