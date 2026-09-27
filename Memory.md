@@ -10,7 +10,17 @@
 - Протокол итерации: `.agents/ORCHESTRATOR.md`
 - Роли: `.agents/prompts/01-analysis.md`, `02-implementation.md`, `03-review.md`
 - Адаптер Superpowers: `.agents/adapters/superpowers.md`
-- Контрактные артефакты: `docs/agent/PROJECT_SPEC.md`, `IMPLEMENTATION.md`, `REVIEW_REPORT.md` — волатильные, перезаписываются каждой итерацией; текущее состояние — итерация 1 (2026-09-27)
+- Контрактные артефакты: `docs/agent/PROJECT_SPEC.md`, `IMPLEMENTATION.md`, `REVIEW_REPORT.md` — волатильные, перезаписываются каждой итерацией; runtime workflow state — в `docs/agent/STATE.md` (см. «Runtime State» ниже)
+
+## Runtime State
+
+Runtime workflow state в `Memory.md` не хранится.
+
+Канонический источник runtime state:
+
+docs/agent/STATE.md
+
+Правило: `Memory.md` MUST NOT содержать volatile workflow state (текущее состояние, счётчики, verdict, commit SHA текущей итерации).
 
 ## Устойчивые решения по каркасу
 
@@ -20,6 +30,7 @@
 - **Ограничение Superpowers ролью Кодера — универсальное и harness-независимое** (`AGENTS.md` §9, адаптер §22). Базовый уровень нормативный: вне сессии Кодера скиллы игнорируются, роли работают только по своим промтам; правило опирается на обязательное чтение `AGENTS.md` и промта роли. Техническое подавление bootstrap — опциональное per-harness усиление (для opencode — `.opencode/INSTALL.md`).
 - **Один execution-layer на роль** (решение 2026-09-27): Superpowers — слой Кодера; mattpocock/skills ([mattpocock/skills](https://github.com/mattpocock/skills), MIT) — слой Архитектора с allowlist v1 (`grilling`, `to-questionnaire`, `research`, `grill-me`; роутер `ask-matt` ограничен навигацией; см. `.agents/adapters/mattpocock-skills.md` §2); Ревьювер принципиально без слоя — независимость. Установка mattpocock/skills — редактируемыми копиями через skills.sh в репозиторий: адаптация под контракт важнее следования upstream, дрейф принят осознанно; managed-плагин Claude Code отвергнут (read-only). Субординация: при конфликте формата/процесса скилла с контрактом (артефакты-файлы в `docs/agent/`, конвенция идентификаторов) контракт побеждает. `AGENTS.md` §9 обобщён до «Execution-Layer Integrations».
 - **Первый полный цикл протокола (Архитектор → Кодер → Ревьювер) прогнан 2026-09-27** на задаче вендоринга `to-questionnaire`/`research`; вердикт `APPROVED_WITH_CHANGES`, ветка `iteration/dry-run` смержена в `main` (коммиты `df160b2` → `9875a69` → `c42665d`). Подтверждено: протокол работоспособен на декларативных задачах; grilling-интервью (`Q-001`–`Q-005`) адекватно заменило сбор требований. Все три роли исполнялись одной средой — зафиксированное в `REVIEW_REPORT` ограничение независимости. Итерация 2 закрыла `REV-001`–`REV-003` через `Review Item Resolution`, вердикт `APPROVED` (`4bec754` → `912f99b`): путь итерации N+1 и механизм закрытия замечаний валидированы.
+- **Формальная workflow state machine внедрена 2026-09-27** (патч из `code review.md`): канонические transitions — `.agents/STATE_MACHINE.md` (нормативен; промты ролей transitions не переопределяют, только описывают работу внутри разрешённого состояния); runtime state — только `docs/agent/STATE.md` (счётчики: cycle, architecture_revision, implementation_iteration, review_iteration, no_progress_count); исполнение — Execution Loop в `.agents/ORCHESTRATOR.md` (раздел 2) + STATE GATE и COMPLETION GATE в промтах ролей; verdict routing — в ORCHESTRATOR (разделы 4–5: `REJECTED` — только architecture-level failure); Q-* без safe ASM-* → `WAITING_HUMAN`, silent downgrade запрещён; `POTENTIAL` — статус доказательности, не severity. Deterministic-проверки (без LLM): `tests/harness/check-block0.sh` (битовая идентичность БЛОК 0), `check-state.sh` (state/counters/transitions), `check-contracts.sh` (идентификаторы и ссылки в `docs/agent/`), `check-git-protocol.sh` (форматы и нумерация артефактных коммитов).
 
 ## Проверка
 
