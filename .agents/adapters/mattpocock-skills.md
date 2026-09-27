@@ -97,6 +97,11 @@ Upstream предлагает два взаимно исключающих сп�
 * `research` — вендорен адаптированной копией: `.agents/skills/research/SKILL.md` (источник upstream: `skills/engineering/research/SKILL.md`);
 * `grill-me` — не вендорится, покрыт `grilling` (§2, `DEC-001`).
 
+Привязка к harness:
+
+* в средах со workspace-discovery пути `.agents/skills/` (например, ZCode) привязка выполняется самим расположением каталога — отдельных настроек не требуется;
+* в средах с собственной директорией скиллов (Claude Code, opencode) привязка — symlink на `.agents/skills/<name>`, а не копия: адаптированная версия должна существовать в одном экземпляре.
+
 ---
 
 ## 5. ГЛАВНОЕ ПРАВИЛО АДАПТЕРА
