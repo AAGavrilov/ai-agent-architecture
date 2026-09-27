@@ -49,7 +49,7 @@
 5. Проверь обязательный Git commit.
 6. Обнови `docs/agent/STATE.md`.
 7. Примени transition по verdict.
-8. Запусти deterministic-проверки `tests/harness/`.
+8. Запусти `bash tests/harness/check-all.sh` — workflow продолжается только при exit code 0.
 9. Остановись при нелегальном transition, blocking Q-*, достижении лимита или unrecoverable-ошибке.
 
 Форматы всех трёх типов артефактных коммитов и правило дельты определены в GIT-ПРОТОКОЛЕ промта Кодера (`.agents/prompts/02-implementation.md`, §15). Правки каркаса вне итераций коммитируются обычными conventional-коммитами и не являются implementation baseline.
@@ -223,6 +223,33 @@ Workflow использует независимые счётчики (см. `do
 workflow переходит в
 
     HALTED / NO_PROGRESS
+
+### 11. STATE COMMIT SEMANTICS
+
+Обновление `docs/agent/STATE.md` — двухфазный процесс, чтобы STATE.md никогда не ссылался на несуществующий коммит.
+
+Phase A — artifact commit. Сначала создаётся содержательный коммит (`Architecture N:` / `Iteration N:` / `Review N:`). Только после него SHA известен.
+
+Phase B — state commit. Затем обновляется `docs/agent/STATE.md` и создаётся framework/state commit:
+
+```text
+State N: <transition description>
+```
+
+Пример:
+
+```text
+Review 2: approve implementation
+State 2: REVIEW_READY -> COMPLETED
+```
+
+Допустим один state commit после каждого artifact commit.
+
+Главное требование:
+
+    STATE.md MUST NEVER reference a commit SHA that does not yet exist.
+
+`STATE.md` — runtime metadata, а не implementation artifact: baseline-диффы исключают его (см. exclusion list в `.agents/HARNESS_CONTRACT.md`).
 
 ### ФИНАЛЬНОЕ ПРАВИЛО
 

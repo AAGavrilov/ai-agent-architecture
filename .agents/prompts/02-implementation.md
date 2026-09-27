@@ -509,6 +509,10 @@ TARGET(N) = implementation commit N
 IMPLEMENTATION_DIFF(N) =
     git diff BASE(N)..TARGET(N)
 
+IMPLEMENTATION_DIFF(N) исключает runtime metadata:
+
+    git diff "$BASE" "$TARGET" -- . ':(exclude)docs/agent/STATE.md'
+
 Для `Iteration 1` BASE(1) — состояние репозитория непосредственно перед implementation commit.
 
 Architecture и Review commits не являются implementation baseline.

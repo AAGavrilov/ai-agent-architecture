@@ -219,7 +219,7 @@ Can it be faster?
 
 1. найти implementation commit текущей итерации;
 2. найти предыдущий implementation commit;
-3. выполнить diff между ними;
+3. выполнить diff между ними (runtime metadata исключить: `git diff "$BASE" "$TARGET" -- . ':(exclude)docs/agent/STATE.md'`, см. `.agents/HARNESS_CONTRACT.md`);
 4. проверить добавленные, изменённые и удалённые файлы;
 5. сверить diff с `Changed Files`;
 6. сверить diff с `Review Item Resolution`;
