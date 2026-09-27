@@ -229,6 +229,8 @@ if [[ "$REVIEW_COMMIT" != "null" ]]; then (( REVIEW_ITER >= 1 )) || fail "Review
 if [[ "$ARCH_COMMIT" == "null" && "$STATE" != "HALTED" ]]; then (( ARCH_REV == 0 )) || fail "Architecture commit is null but Architecture revision is $ARCH_REV"; fi
 
 # --- Deterministic enforcement лимитов (REQ-HARNESS-016/017) ---
+# NO_PROGRESS semantics канонически определены в .agents/ORCHESTRATOR.md (раздел 10);
+# здесь — только numeric enforcement (no_progress_count >= 2 → HALTED/NO_PROGRESS).
 
 (( IMPL_ITER > MAX_IMPL_ITERATIONS )) && { [[ "$STATE" == "HALTED" && "$HALT_REASON" == "ITERATION_LIMIT" ]] || fail "implementation_iteration $IMPL_ITER exceeds limit $MAX_IMPL_ITERATIONS but state is not HALTED/ITERATION_LIMIT"; }
 (( ARCH_REV > MAX_ARCH_REVISIONS )) && { [[ "$STATE" == "HALTED" && "$HALT_REASON" == "ARCHITECTURE_REVISION_LIMIT" ]] || fail "architecture_revision $ARCH_REV exceeds limit $MAX_ARCH_REVISIONS but state is not HALTED/ARCHITECTURE_REVISION_LIMIT"; }
