@@ -36,6 +36,7 @@ ai-agent-architecture/
 │   │   ├── IMPLEMENTATION.md
 │   │   └── REVIEW_REPORT.md
 │   └── architecture/      ← курируемая документация для людей
+│       └── HARNESS_ONBOARDING.md ← приёмочный чек-лист новой среды
 │
 ├── src/                   ← прикладной код (пока пуст)
 └── tests/
