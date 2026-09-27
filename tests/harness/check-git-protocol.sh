@@ -13,6 +13,9 @@
 # Env: STATE_FILE (default docs/agent/STATE.md), GIT_REPO_ROOT (default repo root; для fixtures).
 set -euo pipefail
 
+# shellcheck source=tests/harness/lib/commit-protocol.sh
+. "$(dirname "$0")/lib/commit-protocol.sh"
+
 ROOT="${GIT_REPO_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 cd "$ROOT"
 STATE_FILE="${STATE_FILE:-docs/agent/STATE.md}"
@@ -22,12 +25,6 @@ count_rows() { [[ -z "$1" ]] && echo 0 || printf '%s\n' "$1" | grep -c . || true
 in_cycle() { printf '%s\n' "$1" | awk -v c="$2" 'NF==2 && $1==c {print $2}' | sort -n; }
 
 SUBJECTS="$(git log --format=%s)"
-
-series() { # type -> строки "cycle counter"
-  grep -E "^$1 [0-9]+(\.[0-9]+)?:" <<<"$SUBJECTS" \
-    | sed -E "s/^$1 ([0-9]+)\.([0-9]+):.*/\1 \2/; s/^$1 ([0-9]+):.*/1 \1/" \
-    | sort -n -k1,1 -k2,2 || true
-}
 
 validate_series() { # type rows
   local type="$1" rows="$2" cyc max expected actual dups
@@ -43,7 +40,7 @@ validate_series() { # type rows
   done
 }
 
-arch_rows="$(series "Architecture")"
+arch_rows="$(commit_series "$SUBJECTS" "Architecture")"
 # Известное отклонение: de-facto Architecture 1 коммит с неконформным сообщением
 # (спека итерации 1 закоммичена до появления формата; история не переписывается).
 # Считаем его Architecture 1.1; при появлении настоящего 'Architecture 1.1:' коммита
@@ -52,8 +49,8 @@ EXEMPT_ARCH_FULL="df160b2c033278e1f58263b959e2957bd372038c"
 if git cat-file -e "$EXEMPT_ARCH_FULL^{commit}" 2>/dev/null; then
   arch_rows="$( { [[ -n "$arch_rows" ]] && printf '%s\n' "$arch_rows"; echo "1 1"; } | sort -n -k1,1 -k2,2 )"
 fi
-impl_rows="$(series "Iteration")"
-review_rows="$(series "Review")"
+impl_rows="$(commit_series "$SUBJECTS" "Iteration")"
+review_rows="$(commit_series "$SUBJECTS" "Review")"
 
 validate_series "Architecture" "$arch_rows"
 validate_series "Iteration" "$impl_rows"

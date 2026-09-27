@@ -12,6 +12,9 @@
 # Использование: check-state.sh [путь-к-STATE.md]  (или env STATE_FILE=...)
 set -euo pipefail
 
+# shellcheck source=tests/harness/lib/commit-protocol.sh
+. "$(dirname "$0")/lib/commit-protocol.sh"
+
 cd "$(dirname "$0")/../.."
 STATE_FILE="${STATE_FILE:-${1:-docs/agent/STATE.md}}"
 
@@ -22,7 +25,6 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 field() { grep -m1 -E "^- $1: " "$STATE_FILE" | sed -E "s/^- $1: //" || true; }
 is_int() { [[ "$1" =~ ^[0-9]+$ ]]; }
 commit_exists() { git cat-file -e "$1^{commit}" 2>/dev/null; }
-subject_of() { git log -1 --format=%s "$1" 2>/dev/null; }
 null_if() { [[ "$1" == "null" || "$1" == "none" || -z "$1" ]] && echo null || echo "$1"; }
 
 # Известное отклонение: de-facto Architecture 1 коммит с неконформным сообщением
@@ -230,22 +232,12 @@ esac
 
 # --- Commit subjects и нумерация (§17–18, §55) ---
 
-commit_nums() { # sha type -> "cycle counter" (legacy без цикла нормализуется в cycle 1)
-  local subj
-  subj="$(subject_of "$1")"
-  if [[ "$subj" =~ ^$2\ ([0-9]+)\.([0-9]+): ]]; then
-    echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
-  elif [[ "$subj" =~ ^$2\ ([0-9]+): ]]; then
-    echo "1 ${BASH_REMATCH[1]}"
-  fi
-}
-
 if [[ "$ARCH_COMMIT" != "null" ]]; then
   if is_exempt_arch "$ARCH_COMMIT"; then
     (( ARCH_REV >= 1 )) || fail "Architecture commit set but Architecture revision is $ARCH_REV"
   else
-    nums="$(commit_nums "$ARCH_COMMIT" 'Architecture')"
-    [[ -n "$nums" ]] || fail "Architecture commit $ARCH_COMMIT has non-conforming subject: '$(subject_of "$ARCH_COMMIT")'"
+    nums="$(commit_ref_nums "$ARCH_COMMIT" 'Architecture')"
+    [[ -n "$nums" ]] || fail "Architecture commit $ARCH_COMMIT has non-conforming subject: '$(commit_subject "$ARCH_COMMIT")'"
     [[ "${nums% *}" == "$CYCLE" && "${nums#* }" == "$ARCH_REV" ]] \
       || fail "Architecture commit is 'Architecture ${nums% *}.${nums#* }' but expected 'Architecture $CYCLE.$ARCH_REV'"
   fi
@@ -261,8 +253,8 @@ requires_current_cycle_impl() { grep -qw "$STATE" <<<"IMPLEMENTATION_READY REVIE
 requires_current_cycle_review() { grep -qw "$STATE" <<<"REVIEW_READY COMPLETED"; }
 
 if [[ "$CUR_IMPL_COMMIT" != "null" ]]; then
-  nums="$(commit_nums "$CUR_IMPL_COMMIT" 'Iteration')"
-  [[ -n "$nums" ]] || fail "Current implementation commit $CUR_IMPL_COMMIT has non-conforming subject: '$(subject_of "$CUR_IMPL_COMMIT")'"
+  nums="$(commit_ref_nums "$CUR_IMPL_COMMIT" 'Iteration')"
+  [[ -n "$nums" ]] || fail "Current implementation commit $CUR_IMPL_COMMIT has non-conforming subject: '$(commit_subject "$CUR_IMPL_COMMIT")'"
   c="${nums% *}"; n="${nums#* }"
   if requires_current_cycle_impl; then
     (( c == CYCLE )) || fail "Current implementation commit belongs to cycle $c but STATE=$STATE requires the current cycle ($CYCLE) artifact"
@@ -279,8 +271,8 @@ if [[ "$CUR_IMPL_COMMIT" != "null" ]]; then
 fi
 
 if [[ "$REVIEW_COMMIT" != "null" ]]; then
-  nums="$(commit_nums "$REVIEW_COMMIT" 'Review')"
-  [[ -n "$nums" ]] || fail "Review commit $REVIEW_COMMIT has non-conforming subject: '$(subject_of "$REVIEW_COMMIT")'"
+  nums="$(commit_ref_nums "$REVIEW_COMMIT" 'Review')"
+  [[ -n "$nums" ]] || fail "Review commit $REVIEW_COMMIT has non-conforming subject: '$(commit_subject "$REVIEW_COMMIT")'"
   c="${nums% *}"; n="${nums#* }"
   if requires_current_cycle_review; then
     (( c == CYCLE )) || fail "Review commit belongs to cycle $c but STATE=$STATE requires the current cycle ($CYCLE) artifact"
@@ -297,8 +289,8 @@ if [[ "$REVIEW_COMMIT" != "null" ]]; then
 fi
 
 if [[ "$PREV_IMPL_COMMIT" != "null" ]]; then
-  nums="$(commit_nums "$PREV_IMPL_COMMIT" 'Iteration')"
-  [[ -n "$nums" ]] || fail "Previous implementation commit $PREV_IMPL_COMMIT has non-conforming subject: '$(subject_of "$PREV_IMPL_COMMIT")'"
+  nums="$(commit_ref_nums "$PREV_IMPL_COMMIT" 'Iteration')"
+  [[ -n "$nums" ]] || fail "Previous implementation commit $PREV_IMPL_COMMIT has non-conforming subject: '$(commit_subject "$PREV_IMPL_COMMIT")'"
   c="${nums% *}"; n="${nums#* }"
   (( c <= CYCLE )) || fail "Previous implementation commit belongs to cycle $c but current cycle is $CYCLE"
   if (( c == CYCLE )); then
@@ -315,8 +307,8 @@ fi
 # Соотношение "коммит ⇒ счётчик ≥ 1" действует только для коммитов текущего цикла:
 # после старта нового цикла commit-поля ещё указывают на артефакты прошлого.
 
-cur_impl_cycle="${CUR_IMPL_COMMIT:+$(commit_nums "$CUR_IMPL_COMMIT" 'Iteration')}"
-review_cycle="${REVIEW_COMMIT:+$(commit_nums "$REVIEW_COMMIT" 'Review')}"
+cur_impl_cycle="${CUR_IMPL_COMMIT:+$(commit_ref_nums "$CUR_IMPL_COMMIT" 'Iteration')}"
+review_cycle="${REVIEW_COMMIT:+$(commit_ref_nums "$REVIEW_COMMIT" 'Review')}"
 if [[ "$CUR_IMPL_COMMIT" != "null" && "${cur_impl_cycle% *}" == "$CYCLE" ]]; then
   (( IMPL_ITER >= 1 )) || fail "Current implementation commit is in cycle $CYCLE but Implementation iteration is $IMPL_ITER"
 fi

@@ -218,6 +218,10 @@ Counter continuity, implementation baseline rules, and STATE.md cross-checks
 are evaluated per cycle: a new cycle restarts counters at 1 without
 conflicting with earlier cycles.
 
+The commit-subject format has exactly one implementation —
+`tests/harness/lib/commit-protocol.sh` — shared by all validators; validators
+MUST NOT parse the format independently.
+
 ## Validator mapping
 
 ```text
