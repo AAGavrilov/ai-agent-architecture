@@ -7,11 +7,13 @@ on:
 jobs:
   harness:
     name: Deterministic Harness
-    runs-on: ubuntu-latest
+    # Пин вместо ubuntu-latest: предсказуемая среда без внезапной миграции образа.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # actions/checkout@v7 (node24); fetch-depth: 0 обязателен для check-git-protocol
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -30,7 +32,7 @@ jobs:
 
       - name: Upload harness result
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: harness-result
           path: harness-result.txt
