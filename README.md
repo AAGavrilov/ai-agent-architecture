@@ -13,6 +13,7 @@ ai-agent-architecture/
 ├── .agents/
 │   ├── ORCHESTRATOR.md    ← протокол итерации: запуск трёх ролей по очереди
 │   ├── STATE_MACHINE.md   ← каноническая state machine (states, transitions, verdicts)
+│   ├── HARNESS_CONTRACT.md← deterministic invariants каркаса (REQ-HARNESS-*)
 │   │
 │   ├── prompts/
 │   │   ├── 01-analysis.md        ← Архитектор → docs/agent/PROJECT_SPEC.md
@@ -43,16 +44,50 @@ ai-agent-architecture/
 ├── src/                   ← прикладной код (пока пуст)
 └── tests/
     └── harness/           ← deterministic-проверки workflow без LLM
+        ├── check-all.sh        ← aggregate: все проверки + fixtures
         ├── check-block0.sh
         ├── check-state.sh
         ├── check-contracts.sh
-        └── check-git-protocol.sh
+        ├── check-git-protocol.sh
+        ├── run-fixtures.sh     ← unit tests валидаторов (negative fixtures)
+        └── fixtures/           ← ожидаемые FAIL/PASS кейсы (§46)
 ```
+
+## Workflow State
+
+The current workflow state is stored in:
+
+`docs/agent/STATE.md`
+
+The canonical transition model is:
+
+`.agents/STATE_MACHINE.md`
+
+`Memory.md` is not a runtime state store.
+
+## Deterministic Harness
+
+Run:
+
+```bash
+tests/harness/check-all.sh
+```
+
+The harness validates:
+
+- Block 0 identity;
+- state machine invariants;
+- transition semantics;
+- contract identifier uniqueness;
+- dangling references;
+- Git protocol;
+- iteration limits;
+- review verdict routing.
 
 ## С чего начать
 
 - Постоянные правила работы агентов — `AGENTS.md`.
 - Протокол итерации: порядок запуска ролей, gates, лимиты, маршрутизация по verdict — `.agents/ORCHESTRATOR.md`.
 - Каноническая state machine (состояния и transitions) — `.agents/STATE_MACHINE.md`; runtime state — `docs/agent/STATE.md`.
-- Deterministic-проверки workflow — `tests/harness/` (без LLM).
+- Deterministic-проверки workflow — `tests/harness/`, запуск агрегатом `bash tests/harness/check-all.sh` (без LLM; CI — `.github/workflows/harness.yml`).
 - Execution-слои ролей (Superpowers для Кодера, mattpocock/skills для Архитектора) — `.agents/adapters/`; политика bootstrap Superpowers — `.opencode/INSTALL.md`.

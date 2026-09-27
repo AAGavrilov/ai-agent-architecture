@@ -24,7 +24,7 @@
 | 2 | `grilling`, `research`, `to-questionnaire` из `.agents/skills/`; описание `research` — «находки с цитатами в текущий `PROJECT_SPEC`» (адаптированная копия) | привязка скиллов; harness сканирует workspace `.agents/skills/` |
 | 3 | «Проигнорирую, работаю только по `.agents/prompts/03-review.md`» | нормативный уровень `AGENTS.md` §9 (роль-разделение скиллов) |
 | 4 | `Architecture N: <описание>`; итерации — на отдельной ветке | GIT-ПРОТОКОЛ и режим веток (`ORCHESTRATOR.md`, разделы 1–2) |
-| 5 | Состояние — из `docs/agent/STATE.md` (например, `INIT`); runtime state хранится только там, не в `Memory.md`; transitions определены в `.agents/STATE_MACHINE.md` | знание state machine и запрет второго источника runtime state |
+| 5 | Состояние — из `docs/agent/STATE.md` (сейчас `COMPLETED`, cycle 1, verdict `APPROVED`); runtime state хранится только там, не в `Memory.md`; transitions определены в `.agents/STATE_MACHINE.md` | знание state machine и запрет второго источника runtime state |
 
 ## Если smoke-тест не прошёл
 
@@ -62,10 +62,9 @@
 После каждого перехода workflow и в приёмку новой среды прогоните из корня репозитория:
 
 ```bash
-bash tests/harness/check-block0.sh        # БЛОК 0 трёх промтов бит-идентичен
-bash tests/harness/check-state.sh         # STATE.md: состояние, счётчики, transitions
-bash tests/harness/check-contracts.sh     # идентификаторы артефактов без дублей и висячих ссылок
-bash tests/harness/check-git-protocol.sh  # форматы и нумерация артефактных коммитов
+bash tests/harness/check-all.sh
 ```
 
-Все четыре должны завершиться с `PASS` и exit code 0. Проверки читают только Git, файловую систему и Markdown — «агент сказал, что…» доказательством не является.
+Агрегат выполняет `check-block0.sh` (БЛОК 0 трёх промтов бит-идентичен), `check-state.sh` (STATE.md: состояние, счётчики, transitions, verdict routing), `check-contracts.sh` (глобальная уникальность идентификаторов, dangling references), `check-git-protocol.sh` (форматы и нумерация артефактных коммитов) и `run-fixtures.sh` (unit tests валидаторов на negative fixtures).
+
+Всё должно завершиться `All harness checks passed.` с exit code 0 — иначе workflow продолжать нельзя. Проверки читают только Git, файловую систему и Markdown — «агент сказал, что…» доказательством не является.
