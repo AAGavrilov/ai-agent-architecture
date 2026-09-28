@@ -6,9 +6,16 @@ on:
 
 jobs:
   harness:
-    name: Deterministic Harness
-    # Пин вместо ubuntu-latest: предсказуемая среда без внезапной миграции образа.
-    runs-on: ubuntu-24.04
+    name: Deterministic Harness (${{ matrix.os }})
+    # Матрица: проверяем, что harness переносим, а не только «случайно зелёный»
+    # в среде автора (разработка идёт на Windows/Git Bash).
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - windows-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -18,21 +25,26 @@ jobs:
           fetch-depth: 0
 
       - name: Run deterministic harness
-        run: tests/harness/check-all.sh
+        # Явный bash и на Linux, и на Windows (там shell по умолчанию PowerShell);
+        # вызов через интерпретатор не зависит от exec-бита в файловой системе Windows.
+        shell: bash
+        run: bash tests/harness/check-all.sh
 
       - name: Write harness result
         if: always()
+        shell: bash
         run: |
           {
             echo "commit=${GITHUB_SHA}"
             echo "workflow=${GITHUB_WORKFLOW}"
             echo "run=${GITHUB_RUN_ID}"
             echo "job=${GITHUB_JOB}"
+            echo "os=${RUNNER_OS}"
           } > harness-result.txt
 
       - name: Upload harness result
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: harness-result
+          name: harness-result-${{ matrix.os }}
           path: harness-result.txt
