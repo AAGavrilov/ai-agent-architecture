@@ -594,6 +594,8 @@ SHA коммита записывается в `docs/agent/STATE.md`.
 
 Секция `## Workflow Context` заполняется из `docs/agent/STATE.md` (Cycle, Architecture revision) и описывает версию спецификации; она не заменяет `STATE.md` как источник runtime state.
 
+Готовый каркас всех секций — `.agents/templates/PROJECT_SPEC.md`: скопируй его в `docs/agent/PROJECT_SPEC.md` и заполни, заменив плейсхолдеры `REQ-NNN` / `ASM-NNN` / `Q-NNN` / `DEC-NNN` на реальные ID по `БЛОК 0.1`.
+
 Заголовки секций в OUTPUT используй строго из этого шаблона, не переводи и не переименовывай: на этих именах строится чтение `PROJECT_SPEC` Кодером и Ревьювером.
 
 ```markdown

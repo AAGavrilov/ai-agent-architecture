@@ -55,6 +55,13 @@
 | Кодер | `AGENTS.md`, `Memory.md`, `docs/agent/STATE.md`, `.agents/prompts/02-implementation.md`, `docs/agent/PROJECT_SPEC.md`; при N>1 — плюс `REVIEW_REPORT.md` и предыдущий `IMPLEMENTATION.md` | «Работай в роли Кодера, ветка `iteration/N`» |
 | Ревьювер | `AGENTS.md`, `docs/agent/STATE.md`, `.agents/prompts/03-review.md`, спека, имплементация, код, дельта итерации | «Работай в роли Ревьювера» |
 
+Установка в клоне (git не версионирует `.git/hooks`):
+
+```bash
+bash scripts/install-hooks.sh      # pre-push с полным harness
+bash scripts/cycle.sh status       # где мы и какая роль разрешена
+```
+
 Организационное: прогон — на отдельной ветке; артефактные коммиты — строго `Architecture <cycle>.<revision>:` / `Iteration <cycle>.<iteration>:` / `Review <cycle>.<review>:` (нумерация цикловая; коммиты без точки — legacy cycle 1, REQ-HARNESS-032); внеитерационные правки каркаса — обычные conventional-коммиты и не являются implementation baseline.
 
 ## Deterministic-проверки (без LLM)

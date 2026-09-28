@@ -44,6 +44,11 @@ ai-agent-architecture/
 │           ├── IMPLEMENTATION.md   ← завершённый цикл разработки каркаса
 │           └── REVIEW_REPORT.md
 │
+├── scripts/               ← инструменты разработчика (не часть контракта)
+│   ├── cycle.sh           ← навигатор: где мы, какая роль разрешена, какой коммит ждать
+│   ├── install-hooks.sh   ← ставит versioned git-хуки в .git/hooks
+│   └── hooks/pre-push     ← полный harness перед push
+│
 ├── src/                   ← прикладной код (пока пуст)
 └── tests/
     └── harness/           ← deterministic-проверки workflow без LLM
@@ -97,4 +102,7 @@ The harness validates:
 - Протокол итерации: порядок запуска ролей, gates, лимиты, маршрутизация по verdict — `.agents/ORCHESTRATOR.md`.
 - Каноническая state machine (состояния и transitions) — `.agents/STATE_MACHINE.md`; runtime state — `docs/agent/STATE.md`.
 - Deterministic-проверки workflow — `tests/harness/`, запуск агрегатом `bash tests/harness/check-all.sh` (без LLM; CI — `.github/workflows/harness.yml`).
+- Перед началом работы в клоне: `bash scripts/install-hooks.sh` — ставит `pre-push`, который не пропустит push с красным harness (обход — `git push --no-verify`).
+- Навигатор по циклу: `bash scripts/cycle.sh status` (где мы), `bash scripts/cycle.sh architect|code|review` (разрешена ли роль и какой коммит ждать).
+- Шаблон спеки для Архитектора: `.agents/templates/PROJECT_SPEC.md`.
 - Execution-слои ролей (Superpowers для Кодера, mattpocock/skills для Архитектора) — `.agents/adapters/`; политика bootstrap Superpowers — `.opencode/INSTALL.md`.
